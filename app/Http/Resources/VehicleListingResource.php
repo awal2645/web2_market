@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Http\Resources;
+
+use App\Models\VehicleListing;
+use App\Models\VehicleListingImage;
+
+class VehicleListingResource
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public static function make(VehicleListing $listing): array
+    {
+        $listing->loadMissing('images');
+
+        return [
+            'id' => $listing->id,
+            'title' => $listing->title(),
+            'year' => $listing->year,
+            'make' => $listing->make,
+            'model' => $listing->model,
+            'trim' => $listing->trim,
+            'mileage' => $listing->mileage,
+            'vin' => $listing->vin,
+            'title_status' => $listing->title_status,
+            'condition' => $listing->condition,
+            'exterior_color' => $listing->exterior_color,
+            'interior_color' => $listing->interior_color,
+            'transmission' => $listing->transmission,
+            'fuel_type' => $listing->fuel_type,
+            'drivetrain' => $listing->drivetrain,
+            'asking_price' => $listing->asking_price,
+            'seller_notes' => $listing->seller_notes,
+            'contact_name' => $listing->contact_name,
+            'contact_email' => $listing->contact_email,
+            'contact_phone' => $listing->contact_phone,
+            'status' => $listing->status->value,
+            'status_label' => $listing->status->label(),
+            'images' => $listing->images->map(fn (VehicleListingImage $image) => [
+                'id' => $image->id,
+                'url' => $image->url(),
+            ])->values()->all(),
+            'created_at' => $listing->created_at?->toISOString(),
+        ];
+    }
+}
