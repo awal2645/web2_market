@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +20,7 @@ class ProfileController extends Controller
     public function edit(Request $request): Response
     {
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => false,
             'status' => $request->session()->get('status'),
         ]);
     }
@@ -35,21 +34,16 @@ class ProfileController extends Controller
         $data = $request->safe()->except('avatar');
 
         if ($request->hasFile('avatar')) {
-            $previousAvatar = $user->getAttributes()['avatar'] ?? null;
+            $previousAvatar = $user->getAttributes()['image_url'] ?? null;
 
-            if ($previousAvatar) {
+            if ($previousAvatar && ! str_starts_with($previousAvatar, 'http')) {
                 Storage::disk('public')->delete($previousAvatar);
             }
 
-            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            $data['image_url'] = $request->file('avatar')->store('avatars', 'public');
         }
 
         $user->fill($data);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
         $user->save();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
@@ -63,11 +57,11 @@ class ProfileController extends Controller
     public function destroy(ProfileDeleteRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $avatar = $user->getAttributes()['avatar'] ?? null;
+        $avatar = $user->getAttributes()['image_url'] ?? null;
 
         Auth::logout();
 
-        if ($avatar) {
+        if ($avatar && ! str_starts_with($avatar, 'http')) {
             Storage::disk('public')->delete($avatar);
         }
 

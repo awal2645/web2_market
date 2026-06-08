@@ -128,11 +128,11 @@ class VehicleListingSeeder extends Seeder
 
     public function run(): void
     {
-        $seller = User::query()->firstOrCreate(
+        $seller = User::firstOrCreate(
             ['email' => 'seller@example.com'],
             [
                 'name' => 'Demo Seller',
-                'password' => bcrypt('password'),
+                'password' => 'password',
                 'listing_prompt_completed_at' => now(),
             ],
         );

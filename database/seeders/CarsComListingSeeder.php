@@ -140,11 +140,11 @@ class CarsComListingSeeder extends Seeder
             ->where('email', 'signature-auto@example.com')
             ->update(['email' => 'info@web2auto.com']);
 
-        $seller = User::query()->updateOrCreate(
+        $seller = User::updateOrCreate(
             ['email' => 'info@web2auto.com'],
             [
                 'name' => 'Dat Tran',
-                'password' => bcrypt('password'),
+                'password' => 'password',
                 'listing_prompt_completed_at' => now(),
             ],
         );

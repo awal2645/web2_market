@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Hashing\CompatibleBcryptHasher;
 use Carbon\CarbonImmutable;
+use Illuminate\Hashing\HashManager;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -23,6 +25,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->app->afterResolving('hash', function (HashManager $hash): void {
+            $hash->extend('bcrypt', function () {
+                return new CompatibleBcryptHasher(config('hashing.bcrypt') ?? []);
+            });
+            $hash->forgetDrivers();
+        });
+
         $this->configureDefaults();
     }
 

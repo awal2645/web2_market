@@ -1,15 +1,34 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));
 
     $response->assertOk();
+});
+
+test('users registered on web2autos-next can log in with bcryptjs hashes', function () {
+    $phpHash = password_hash('password', PASSWORD_BCRYPT, ['cost' => 12]);
+    $nextJsHash = '$2a$'.substr($phpHash, 4);
+
+    $user = User::factory()->create([
+        'password_hash' => $nextJsHash,
+        'listing_prompt_completed_at' => now(),
+    ]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('dashboard', absolute: false));
 });
 
 test('users can authenticate using the login screen', function () {

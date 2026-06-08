@@ -1,49 +1,40 @@
 import { Head, Link } from '@inertiajs/react';
 import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 
 export default function Congratulations() {
     return (
         <>
             <Head title="Welcome!" />
 
-            <Card className="w-full max-w-lg">
-                <CardHeader className="text-center">
-                    <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
-                        <CheckCircle2 className="size-6" />
-                    </div>
-                    <CardTitle className="text-xl">
+            <div className="flex flex-col gap-6 text-center">
+                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+                    <CheckCircle2 className="size-6" />
+                </div>
+
+                <div className="space-y-2">
+                    <h2 className="text-xl font-semibold">
                         Welcome to Web2Autos!
-                    </CardTitle>
-                    <CardDescription className="text-base leading-relaxed">
+                    </h2>
+                    <p className="text-base leading-relaxed text-muted-foreground">
                         Your account is all set. You can browse vehicles on the
                         marketplace, list your car anytime, or head to your
                         dashboard to get started.
-                    </CardDescription>
-                </CardHeader>
+                    </p>
+                </div>
 
-                <CardContent />
-
-                <CardFooter className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-                    <Button asChild variant="outline">
+                <div className="flex flex-col gap-3">
+                    <Button asChild variant="outline" className="w-full">
                         <Link href="/">Browse Market</Link>
                     </Button>
-                    <Button asChild variant="outline">
+                    <Button asChild variant="outline" className="w-full">
                         <Link href="/listings/create">List My Vehicle</Link>
                     </Button>
-                    <Button asChild>
+                    <Button asChild className="w-full">
                         <Link href="/dashboard">Go to Dashboard</Link>
                     </Button>
-                </CardFooter>
-            </Card>
+                </div>
+            </div>
         </>
     );
 }

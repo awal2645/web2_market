@@ -37,7 +37,6 @@ test('profile information can be updated', function () {
     expect($user->name)->toBe('Test User');
     expect($user->email)->toBe('test@example.com');
     expect($user->phone)->toBe('+15551234567');
-    expect($user->email_verified_at)->toBeNull();
 });
 
 test('profile picture can be uploaded', function () {
@@ -60,8 +59,8 @@ test('profile picture can be uploaded', function () {
 
     $user->refresh();
 
-    expect($user->getAttributes()['avatar'])->not->toBeNull();
-    Storage::disk('public')->assertExists($user->getAttributes()['avatar']);
+    expect($user->getAttributes()['image_url'])->not->toBeNull();
+    Storage::disk('public')->assertExists($user->getAttributes()['image_url']);
 });
 
 test('mobile number is required', function () {
@@ -107,24 +106,6 @@ test('invalid profile picture types are rejected', function () {
         ]);
 
     $response->assertSessionHasErrors('avatar');
-});
-
-test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->patch(route('profile.update'), [
-            'name' => 'Test User',
-            'email' => $user->email,
-            'phone' => $user->phone,
-        ]);
-
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('profile.edit'));
-
-    expect($user->refresh()->email_verified_at)->not->toBeNull();
 });
 
 test('user can delete their account', function () {

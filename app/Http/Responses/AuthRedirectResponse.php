@@ -12,10 +12,6 @@ class AuthRedirectResponse implements LoginResponseContract, RegisterResponseCon
     {
         $user = $request->user();
 
-        if ($user && ! $user->hasVerifiedEmail()) {
-            return redirect()->route('verification.notice');
-        }
-
         if ($user && $user->needsListingPrompt()) {
             return redirect()->route('onboarding.list-vehicle');
         }

@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('vehicle_listings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('user_id', 191);
+            $table->foreign('user_id')->references('id')->on('customer_users')->cascadeOnDelete();
             $table->unsignedSmallInteger('year');
             $table->string('make');
             $table->string('model');

@@ -13,7 +13,7 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('browse', BrowseController::class)->name('browse');
 Route::get('market/{listing}', [VehicleListingController::class, 'show'])->name('listings.show');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     Route::prefix('onboarding')->name('onboarding.')->group(function () {

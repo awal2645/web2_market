@@ -40,7 +40,7 @@ test('new users are redirected to listing prompt after registration', function (
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('verification.notice', absolute: false));
+    $response->assertRedirect(route('onboarding.list-vehicle', absolute: false));
 });
 
 test('users can skip listing prompt and see congratulations page', function () {
