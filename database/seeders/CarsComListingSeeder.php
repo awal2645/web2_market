@@ -136,16 +136,16 @@ class CarsComListingSeeder extends Seeder
 
     public function run(): void
     {
-        $seller = User::query()->firstOrCreate(
+        $seller = User::query()->updateOrCreate(
             ['email' => 'signature-auto@example.com'],
             [
-                'name' => 'Signature Auto Sales & Rentals',
+                'name' => 'Dat Tran',
                 'password' => bcrypt('password'),
                 'listing_prompt_completed_at' => now(),
             ],
         );
 
-        foreach ($this->listings as $index => $data) {
+        foreach ($this->listings as $data) {
             $imageUrl = $data['image'];
             $sourceUrl = $data['source_url'];
             unset($data['image'], $data['source_url']);
@@ -155,9 +155,9 @@ class CarsComListingSeeder extends Seeder
                 [
                     ...$this->defaults($data),
                     'user_id' => $seller->id,
-                    'contact_name' => $seller->name,
+                    'contact_name' => 'Dat Tran',
                     'contact_email' => $seller->email,
-                    'contact_phone' => '(510) 555-'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
+                    'contact_phone' => '408-646-1313',
                     'seller_notes' => "Used inventory from Fremont, CA. Source listing: {$sourceUrl}",
                     'status' => ListingStatus::Approved,
                 ],
