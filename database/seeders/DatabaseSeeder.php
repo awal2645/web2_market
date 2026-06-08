@@ -32,6 +32,9 @@ class DatabaseSeeder extends Seeder
             'listing_prompt_completed_at' => now(),
         ]);
 
-        $this->call(VehicleListingSeeder::class);
+        $this->call([
+            VehicleListingSeeder::class,
+            CarsComListingSeeder::class,
+        ]);
     }
 }
