@@ -1,8 +1,11 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
@@ -22,6 +25,7 @@ test('profile information can be updated', function () {
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'phone' => '555-123-4567',
         ]);
 
     $response
@@ -32,7 +36,77 @@ test('profile information can be updated', function () {
 
     expect($user->name)->toBe('Test User');
     expect($user->email)->toBe('test@example.com');
+    expect($user->phone)->toBe('+15551234567');
     expect($user->email_verified_at)->toBeNull();
+});
+
+test('profile picture can be uploaded', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'avatar' => UploadedFile::fake()->image('avatar.jpg', 200, 200),
+        ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('profile.edit'));
+
+    $user->refresh();
+
+    expect($user->getAttributes()['avatar'])->not->toBeNull();
+    Storage::disk('public')->assertExists($user->getAttributes()['avatar']);
+});
+
+test('mobile number is required', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => '',
+        ]);
+
+    $response->assertSessionHasErrors('phone');
+});
+
+test('mobile number must be valid', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => '123',
+        ]);
+
+    $response->assertSessionHasErrors('phone');
+});
+
+test('invalid profile picture types are rejected', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'avatar' => UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'),
+        ]);
+
+    $response->assertSessionHasErrors('avatar');
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {
@@ -43,6 +117,7 @@ test('email verification status is unchanged when the email address is unchanged
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => $user->email,
+            'phone' => $user->phone,
         ]);
 
     $response

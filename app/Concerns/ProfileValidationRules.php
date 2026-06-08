@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Models\User;
+use App\Rules\ValidPhoneNumber;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
@@ -18,6 +19,18 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+        ];
+    }
+
+    /**
+     * @return array<string, array<int, ValidationRule|array<mixed>|string>>
+     */
+    protected function profileUpdateRules(?int $userId = null): array
+    {
+        return [
+            ...$this->profileRules($userId),
+            'phone' => $this->phoneRules(),
+            'avatar' => $this->avatarRules(),
         ];
     }
 
@@ -46,6 +59,28 @@ trait ProfileValidationRules
             $userId === null
                 ? Rule::unique(User::class)
                 : Rule::unique(User::class)->ignore($userId),
+        ];
+    }
+
+    /**
+     * @return array<int, ValidationRule|array<mixed>|string>
+     */
+    protected function phoneRules(): array
+    {
+        return ['required', 'string', 'max:20', new ValidPhoneNumber];
+    }
+
+    /**
+     * @return array<int, ValidationRule|array<mixed>|string>
+     */
+    protected function avatarRules(): array
+    {
+        return [
+            'nullable',
+            'image',
+            'mimes:jpeg,jpg,png,webp',
+            'max:2048',
+            'dimensions:min_width=100,min_height=100,max_width=4096,max_height=4096',
         ];
     }
 }
