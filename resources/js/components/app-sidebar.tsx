@@ -8,9 +8,6 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { Auth, NavItem } from '@/types';
@@ -46,16 +43,14 @@ export function AppSidebar() {
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+            <SidebarHeader className="px-3 py-3">
+                <Link
+                    href={dashboard()}
+                    prefetch
+                    className="flex w-full items-center overflow-visible transition hover:opacity-90"
+                >
+                    <AppLogo className="h-auto w-full max-h-16 object-contain object-left group-data-[collapsible=icon]:max-h-8" />
+                </Link>
             </SidebarHeader>
 
             <SidebarContent>
