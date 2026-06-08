@@ -2,6 +2,7 @@
 
 namespace App\Http\Responses;
 
+use App\Support\AuthSync;
 use Illuminate\Http\RedirectResponse;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
@@ -12,10 +13,18 @@ class AuthRedirectResponse implements LoginResponseContract, RegisterResponseCon
     {
         $user = $request->user();
 
-        if ($user && $user->needsListingPrompt()) {
-            return redirect()->route('onboarding.list-vehicle');
+        $destination = $user && $user->needsListingPrompt()
+            ? route('onboarding.list-vehicle')
+            : $request->session()->pull('url.intended', route('dashboard'));
+
+        $returnUrl = str_starts_with($destination, 'http')
+            ? $destination
+            : url($destination);
+
+        if ($user && ($handshake = AuthSync::partnerHandshakeUrl($user, $returnUrl))) {
+            return redirect()->away($handshake);
         }
 
-        return redirect()->intended(route('dashboard'));
+        return redirect($destination);
     }
 }
