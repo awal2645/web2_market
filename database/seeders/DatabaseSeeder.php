@@ -14,18 +14,24 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Demo User',
-            'email' => 'user@mail.com',
-            'listing_prompt_completed_at' => now(),
-        ]);
+        User::updateOrCreate(
+            ['email' => 'user@mail.com'],
+            [
+                'name' => 'Demo User',
+                'password' => 'password',
+                'listing_prompt_completed_at' => now(),
+            ],
+        );
 
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'is_admin' => true,
-            'listing_prompt_completed_at' => now(),
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'is_admin' => true,
+                'password' => 'password',
+                'listing_prompt_completed_at' => now(),
+            ],
+        );
 
         $this->call([
             VehicleListingSeeder::class,
