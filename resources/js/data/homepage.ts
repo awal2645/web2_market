@@ -86,20 +86,6 @@ export const preApproval = {
     ],
 };
 
-export const testimonial = {
-    quote: 'I sold my car in 3 days for $2,800 more than the dealer offered. Web2Autos made the whole process easy and stress-free!',
-    name: 'Jessica M.',
-    location: 'Austin, TX',
-    rating: 5,
-};
-
-export const trustBadges = [
-    { name: 'Norton Secured', sub: 'Safe & Secure' },
-    { name: 'Google', sub: '4.8 ★★★★★' },
-    { name: 'Trustpilot', sub: '4.7 Excellent' },
-    { name: 'BBB', sub: 'Accredited A+' },
-];
-
 export const footerLinks = {
     buy: ['Browse Cars', 'SUVs', 'Sedans', 'Trucks', 'Luxury Cars'],
     sell: ['Sell Your Car', 'Post a Listing', 'Pricing Guide', 'Seller Tips'],

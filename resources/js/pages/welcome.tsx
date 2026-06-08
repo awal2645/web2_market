@@ -9,7 +9,6 @@ import { HomeSearchBar } from '@/components/market/home/search-bar';
 import {
     CategoriesSection,
     HowItWorksSection,
-    TestimonialsSection,
 } from '@/components/market/home/sections';
 import { resolveFeaturedListings } from '@/data/homepage';
 import { register } from '@/routes';
@@ -47,7 +46,6 @@ export default function Welcome({ listings = [], filterOptions }: Props) {
                 />
                 <CategoriesSection />
                 <HowItWorksSection />
-                <TestimonialsSection />
 
                 <section
                     id="sell"

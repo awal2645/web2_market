@@ -3,7 +3,6 @@ import {
     Car,
     ChevronRight,
     CreditCard,
-    Star,
     Truck,
     User,
 } from 'lucide-react';
@@ -146,96 +145,3 @@ export function HowItWorksSection() {
     );
 }
 
-function StarRow({ count = 5 }: { count?: number }) {
-    return (
-        <div className="flex gap-0.5">
-            {Array.from({ length: count }).map((_, i) => (
-                <Star
-                    key={i}
-                    className="size-4 fill-amber-400 text-amber-400"
-                />
-            ))}
-        </div>
-    );
-}
-
-export function TestimonialsSection() {
-    return (
-        <section className="bg-muted/50 py-12 lg:py-14">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="grid gap-5 lg:grid-cols-12">
-                    {/* Testimonial — spans 7 cols */}
-                    <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm sm:flex-row lg:col-span-7">
-                        <div className="flex flex-1 flex-col justify-center p-8">
-                            <h2 className="text-lg font-bold text-foreground">
-                                What Our Customers Say
-                            </h2>
-                            <div className="mt-5 flex gap-3">
-                                <span className="text-4xl leading-none font-serif text-[#1565C0]">
-                                    &ldquo;
-                                </span>
-                                <p className="text-base leading-relaxed text-muted-foreground">
-                                    Web2Autos made it so easy to find the right
-                                    car and get financed quickly. Highly
-                                    recommend!
-                                </p>
-                            </div>
-                            <div className="mt-6 flex items-center gap-3">
-                                <p className="text-sm font-semibold text-foreground">
-                                    — Jessica M.
-                                </p>
-                                <StarRow />
-                            </div>
-                        </div>
-                        <div className="relative h-48 shrink-0 sm:h-auto sm:w-44 lg:w-52">
-                            <img
-                                src="/images/testimonial-jessica.jpg"
-                                alt="Jessica M."
-                                className="size-full object-cover object-top"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Trustpilot */}
-                    <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-2">
-                        <div className="flex items-center gap-1.5">
-                            <Star className="size-5 fill-[#00B67A] text-[#00B67A]" />
-                            <span className="text-lg font-bold text-foreground">
-                                Trustpilot
-                            </span>
-                        </div>
-                        <p className="mt-3 text-2xl font-bold text-foreground">
-                            4.7
-                        </p>
-                        <div className="mt-2">
-                            <StarRow />
-                        </div>
-                    </div>
-
-                    {/* BBB */}
-                    <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-3">
-                        <div className="flex items-center gap-3">
-                            <div className="flex size-14 items-center justify-center rounded-lg bg-[#005A78] text-xs font-bold text-white">
-                                BBB
-                            </div>
-                            <div className="text-left">
-                                <p className="text-sm font-bold text-[#005A78]">
-                                    Accredited
-                                </p>
-                                <p className="text-sm font-bold text-[#005A78]">
-                                    Business
-                                </p>
-                            </div>
-                            <div className="flex size-14 items-center justify-center rounded-full border-4 border-[#005A78] text-xl font-extrabold text-[#005A78]">
-                                A+
-                            </div>
-                        </div>
-                        <p className="mt-3 text-xs text-muted-foreground">
-                            Better Business Bureau
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
-}
