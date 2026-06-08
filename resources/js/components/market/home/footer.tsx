@@ -29,7 +29,7 @@ const columns = [
 
 export function HomeFooter() {
     return (
-        <footer className="border-t border-gray-200 bg-white">
+        <footer className="border-t border-border bg-background">
             <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
                 <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
                     {/* Brand */}
@@ -41,7 +41,7 @@ export function HomeFooter() {
                                 className="h-11 w-auto"
                             />
                         </Link>
-                        <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-500">
+                        <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
                             Where buyers &amp; sellers meet. Buy, sell, and
                             finance vehicles in one place.
                         </p>
@@ -50,7 +50,7 @@ export function HomeFooter() {
                     {/* Link columns */}
                     {columns.map((col) => (
                         <div key={col.title}>
-                            <h4 className="mb-4 text-xs font-bold tracking-wider text-gray-900 uppercase">
+                            <h4 className="mb-4 text-xs font-bold tracking-wider text-foreground uppercase">
                                 {col.title}
                             </h4>
                             <ul className="space-y-2.5">
@@ -58,7 +58,7 @@ export function HomeFooter() {
                                     <li key={link.label}>
                                         <Link
                                             href={link.href}
-                                            className="text-sm text-gray-600 transition hover:text-[#1565C0]"
+                                            className="text-sm text-muted-foreground transition hover:text-[#1565C0]"
                                         >
                                             {link.label}
                                         </Link>
@@ -70,12 +70,12 @@ export function HomeFooter() {
                 </div>
 
                 {/* Bottom bar */}
-                <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-gray-200 pt-6 sm:flex-row">
-                    <p className="text-sm text-gray-500">
+                <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 sm:flex-row">
+                    <p className="text-sm text-muted-foreground">
                         &copy; {new Date().getFullYear()} Web2Autos.com. All
                         rights reserved.
                     </p>
-                    <div className="flex gap-6 text-sm text-gray-500">
+                    <div className="flex gap-6 text-sm text-muted-foreground">
                         <Link href="#" className="hover:text-[#1565C0]">
                             Privacy
                         </Link>

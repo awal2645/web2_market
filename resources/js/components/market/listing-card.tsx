@@ -71,9 +71,9 @@ export function ListingCard({
     return (
         <a
             href={href}
-            className="group flex flex-col overflow-hidden rounded-xl bg-white ring-1 ring-neutral-200/80 transition hover:-translate-y-0.5 hover:shadow-lg hover:ring-neutral-300"
+            className="group flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-border transition hover:-translate-y-0.5 hover:shadow-lg hover:ring-border"
         >
-            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+            <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                 {imageUrl ? (
                     <img
                         src={imageUrl}
@@ -81,19 +81,19 @@ export function ListingCard({
                         className="size-full object-cover transition duration-500 group-hover:scale-105"
                     />
                 ) : (
-                    <div className="flex size-full items-center justify-center text-neutral-400">
+                    <div className="flex size-full items-center justify-center text-muted-foreground">
                         No photo
                     </div>
                 )}
-                <div className="absolute top-3 right-3 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-[#1565C0] shadow-sm">
+                <div className="absolute top-3 right-3 rounded-md bg-background/95 px-2.5 py-1 text-xs font-bold text-[#1565C0] shadow-sm dark:text-[#90caf9]">
                     {formattedPrice}
                 </div>
             </div>
             <div className="flex flex-1 flex-col p-4">
-                <h3 className="font-semibold text-neutral-900 group-hover:text-[#1565C0]">
+                <h3 className="font-semibold text-foreground group-hover:text-[#1565C0] dark:group-hover:text-[#90caf9]">
                     {listing.title}
                 </h3>
-                <p className="mt-1 text-sm text-neutral-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                     {formattedMileage} mi · {listing.transmission} ·{' '}
                     {listing.exterior_color}
                 </p>

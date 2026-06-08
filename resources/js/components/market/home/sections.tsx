@@ -37,18 +37,18 @@ const categories = [
 
 export function CategoriesSection() {
     return (
-        <section className="bg-white py-8">
+        <section className="bg-background py-8">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-3 shadow-sm sm:flex-row sm:items-stretch sm:gap-0 sm:p-2">
+                <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/50 p-3 shadow-sm sm:flex-row sm:items-stretch sm:gap-0 sm:p-2">
                     {categories.map((cat, i) => {
                         const Icon = cat.icon;
                         return (
                             <Link
                                 key={cat.label}
                                 href={cat.href}
-                                className={`group flex flex-1 items-center gap-4 rounded-xl px-5 py-4 transition hover:bg-white hover:shadow-sm ${
+                                className={`group flex flex-1 items-center gap-4 rounded-xl px-5 py-4 transition hover:bg-background hover:shadow-sm ${
                                     i > 0
-                                        ? 'sm:border-l sm:border-gray-200'
+                                        ? 'sm:border-l sm:border-border'
                                         : ''
                                 }`}
                             >
@@ -59,10 +59,10 @@ export function CategoriesSection() {
                                     />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-base font-bold text-gray-900">
+                                    <p className="text-base font-bold text-foreground">
                                         {cat.label}
                                     </p>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-muted-foreground">
                                         {cat.subtitle}
                                     </p>
                                 </div>
@@ -98,9 +98,9 @@ const steps = [
 
 export function HowItWorksSection() {
     return (
-        <section className="border-y border-gray-100 bg-white py-12 lg:py-14">
+        <section className="border-y border-border bg-background py-12 lg:py-14">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
+                <h2 className="text-xl font-bold text-foreground sm:text-2xl">
                     How It Works
                 </h2>
 
@@ -113,7 +113,7 @@ export function HowItWorksSection() {
                                 className="flex flex-1 items-center gap-0"
                             >
                                 <div className="flex flex-1 items-start gap-4">
-                                    <div className="flex size-14 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm">
+                                    <div className="flex size-14 shrink-0 items-center justify-center rounded-full border border-border bg-card shadow-sm">
                                         <Icon
                                             className="size-6 text-[#1565C0]"
                                             strokeWidth={1.75}
@@ -124,10 +124,10 @@ export function HowItWorksSection() {
                                             {step.n}
                                         </span>
                                         <div>
-                                            <h3 className="font-bold text-gray-900">
+                                            <h3 className="font-bold text-foreground">
                                                 {step.title}
                                             </h3>
-                                            <p className="mt-1 max-w-[220px] text-sm leading-relaxed text-gray-500">
+                                            <p className="mt-1 max-w-[220px] text-sm leading-relaxed text-muted-foreground">
                                                 {step.desc}
                                             </p>
                                         </div>
@@ -135,7 +135,7 @@ export function HowItWorksSection() {
                                 </div>
 
                                 {i < steps.length - 1 && (
-                                    <ChevronRight className="mx-2 hidden size-5 shrink-0 text-gray-300 lg:block" />
+                                    <ChevronRight className="mx-2 hidden size-5 shrink-0 text-muted-foreground/50 lg:block" />
                                 )}
                             </div>
                         );
@@ -161,27 +161,27 @@ function StarRow({ count = 5 }: { count?: number }) {
 
 export function TestimonialsSection() {
     return (
-        <section className="bg-gray-50 py-12 lg:py-14">
+        <section className="bg-muted/50 py-12 lg:py-14">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="grid gap-5 lg:grid-cols-12">
                     {/* Testimonial — spans 7 cols */}
-                    <div className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm sm:flex-row lg:col-span-7">
+                    <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm sm:flex-row lg:col-span-7">
                         <div className="flex flex-1 flex-col justify-center p-8">
-                            <h2 className="text-lg font-bold text-gray-900">
+                            <h2 className="text-lg font-bold text-foreground">
                                 What Our Customers Say
                             </h2>
                             <div className="mt-5 flex gap-3">
                                 <span className="text-4xl leading-none font-serif text-[#1565C0]">
                                     &ldquo;
                                 </span>
-                                <p className="text-base leading-relaxed text-gray-600">
+                                <p className="text-base leading-relaxed text-muted-foreground">
                                     Web2Autos made it so easy to find the right
                                     car and get financed quickly. Highly
                                     recommend!
                                 </p>
                             </div>
                             <div className="mt-6 flex items-center gap-3">
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-sm font-semibold text-foreground">
                                     — Jessica M.
                                 </p>
                                 <StarRow />
@@ -197,14 +197,14 @@ export function TestimonialsSection() {
                     </div>
 
                     {/* Trustpilot */}
-                    <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:col-span-2">
+                    <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-2">
                         <div className="flex items-center gap-1.5">
                             <Star className="size-5 fill-[#00B67A] text-[#00B67A]" />
-                            <span className="text-lg font-bold text-gray-900">
+                            <span className="text-lg font-bold text-foreground">
                                 Trustpilot
                             </span>
                         </div>
-                        <p className="mt-3 text-2xl font-bold text-gray-900">
+                        <p className="mt-3 text-2xl font-bold text-foreground">
                             4.7
                         </p>
                         <div className="mt-2">
@@ -213,7 +213,7 @@ export function TestimonialsSection() {
                     </div>
 
                     {/* BBB */}
-                    <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:col-span-3">
+                    <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-3">
                         <div className="flex items-center gap-3">
                             <div className="flex size-14 items-center justify-center rounded-lg bg-[#005A78] text-xs font-bold text-white">
                                 BBB
@@ -230,7 +230,7 @@ export function TestimonialsSection() {
                                 A+
                             </div>
                         </div>
-                        <p className="mt-3 text-xs text-gray-500">
+                        <p className="mt-3 text-xs text-muted-foreground">
                             Better Business Bureau
                         </p>
                     </div>

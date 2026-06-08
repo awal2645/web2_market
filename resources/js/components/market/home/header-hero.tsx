@@ -28,7 +28,7 @@ const navLinks = [
 
 export function HomeHeader({ auth, listHref }: Props) {
     return (
-        <header className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+        <header className="sticky top-0 z-50 border-b border-border bg-background shadow-sm">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5 lg:px-6">
                 <Link href="/" className="shrink-0 transition hover:opacity-90">
                     <img
@@ -43,7 +43,7 @@ export function HomeHeader({ auth, listHref }: Props) {
                         <a
                             key={link.label}
                             href={link.href}
-                            className="inline-flex items-center gap-0.5 rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-blue-50 hover:text-[#1565C0]"
+                            className="inline-flex items-center gap-0.5 rounded-md px-3 py-2 text-sm font-medium text-foreground transition hover:bg-blue-50 hover:text-[#1565C0] dark:hover:bg-blue-950/40 dark:hover:text-[#90caf9]"
                         >
                             {link.label}
                             {link.hasDropdown && (
@@ -56,7 +56,7 @@ export function HomeHeader({ auth, listHref }: Props) {
                 <div className="flex items-center gap-2 sm:gap-3">
                     <button
                         type="button"
-                        className="hidden items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-gray-600 hover:text-[#1565C0] sm:inline-flex"
+                        className="hidden items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-[#1565C0] sm:inline-flex"
                     >
                         <Heart className="size-4" />
                         Saved
@@ -65,7 +65,7 @@ export function HomeHeader({ auth, listHref }: Props) {
                     {auth.user ? (
                         <Link
                             href={dashboard()}
-                            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#1565C0]"
+                            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:text-[#1565C0]"
                         >
                             <User className="size-4" />
                             Dashboard
@@ -73,7 +73,7 @@ export function HomeHeader({ auth, listHref }: Props) {
                     ) : (
                         <Link
                             href={login()}
-                            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#1565C0]"
+                            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:text-[#1565C0]"
                         >
                             <User className="size-4" />
                             Sign In
@@ -96,18 +96,18 @@ export function HomeHeader({ auth, listHref }: Props) {
 
 export function HomeHero({ listHref }: { listHref: string }) {
     return (
-        <section className="relative overflow-hidden bg-gradient-to-b from-blue-50/80 via-white to-white pb-0">
+        <section className="relative overflow-hidden bg-gradient-to-b from-blue-50/80 via-background to-background pb-0 dark:from-blue-950/30 dark:via-background dark:to-background">
             <div className="mx-auto max-w-7xl px-4 pt-10 pb-6 sm:px-6 lg:px-8 lg:pt-14">
                 <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
                     {/* Left copy */}
                     <div>
-                        <h1 className="text-4xl leading-tight font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-[3.25rem]">
+                        <h1 className="text-4xl leading-tight font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem]">
                             Buy. Sell. Finance.{' '}
                             <span className="text-[#1565C0]">
                                 All in One Place.
                             </span>
                         </h1>
-                        <p className="mt-4 max-w-lg text-lg text-gray-600">
+                        <p className="mt-4 max-w-lg text-lg text-muted-foreground">
                             Where serious buyers meet trusted sellers and get
                             the auto loan you deserve.
                         </p>
@@ -122,13 +122,13 @@ export function HomeHero({ listHref }: { listHref: string }) {
                             </Link>
                             <Link
                                 href={listHref}
-                                className="inline-flex items-center gap-2 rounded-lg border-2 border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 transition hover:border-[#1565C0] hover:text-[#1565C0]"
+                                className="inline-flex items-center gap-2 rounded-lg border-2 border-input bg-card px-5 py-3 text-sm font-semibold text-foreground transition hover:border-[#1565C0] hover:text-[#1565C0] dark:hover:border-[#90caf9] dark:hover:text-[#90caf9]"
                             >
                                 Sell Your Car
                             </Link>
                             <a
                                 href="#finance"
-                                className="inline-flex items-center gap-2 rounded-lg border-2 border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 transition hover:border-[#1565C0] hover:text-[#1565C0]"
+                                className="inline-flex items-center gap-2 rounded-lg border-2 border-input bg-card px-5 py-3 text-sm font-semibold text-foreground transition hover:border-[#1565C0] hover:text-[#1565C0] dark:hover:border-[#90caf9] dark:hover:text-[#90caf9]"
                             >
                                 <Landmark className="size-4" />
                                 Get Auto Loan
@@ -139,12 +139,12 @@ export function HomeHero({ listHref }: { listHref: string }) {
                             {heroStats.map((s) => (
                                 <div
                                     key={s.label}
-                                    className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-3 text-center shadow-sm"
+                                    className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-3 text-center shadow-sm dark:border-blue-800 dark:bg-blue-950/40"
                                 >
                                     <p className="text-base font-extrabold text-[#1565C0] sm:text-lg">
                                         {s.value}
                                     </p>
-                                    <p className="mt-0.5 text-[10px] leading-tight font-medium text-gray-500 sm:text-xs">
+                                    <p className="mt-0.5 text-[10px] leading-tight font-medium text-muted-foreground sm:text-xs">
                                         {s.label}
                                     </p>
                                 </div>

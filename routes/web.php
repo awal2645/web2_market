@@ -26,6 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [VehicleListingController::class, 'index'])->name('index');
         Route::get('create', [VehicleListingController::class, 'create'])->name('create');
         Route::post('/', [VehicleListingController::class, 'store'])->name('store');
+        Route::get('{listing}/edit', [VehicleListingController::class, 'edit'])->name('edit');
+        Route::put('{listing}', [VehicleListingController::class, 'update'])->name('update');
+        Route::delete('{listing}', [VehicleListingController::class, 'destroy'])->name('destroy');
     });
 
     Route::middleware(EnsureUserIsAdmin::class)->prefix('admin')->name('admin.')->group(function () {

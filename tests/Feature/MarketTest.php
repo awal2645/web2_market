@@ -1,11 +1,14 @@
 <?php
 
+use App\Models\MarketSetting;
 use App\Models\User;
 use App\Models\VehicleListing;
+use App\Models\VehicleListingImage;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('homepage displays approved listings', function () {
     $listing = VehicleListing::factory()->approved()->create([
@@ -151,7 +154,7 @@ test('users can submit a vehicle listing with images', function () {
 
     $listing = VehicleListing::query()->first();
 
-    $response->assertRedirect(route('listings.index', absolute: false));
+    $response->assertRedirect(route('listings.create', ['step' => 'success'], absolute: false));
 
     expect($listing)->not->toBeNull();
     expect($listing->images)->toHaveCount(2);
@@ -171,7 +174,7 @@ test('manual approval keeps new listings pending', function () {
 test('automatic approval publishes listings immediately', function () {
     Storage::fake('public');
 
-    \App\Models\MarketSetting::current()->update([
+    MarketSetting::current()->update([
         'listing_approval_mode' => 'automatic',
     ]);
 
@@ -197,6 +200,131 @@ test('admin can approve and reject listings', function () {
         ->assertRedirect();
 
     expect($listing->fresh()->status->value)->toBe('rejected');
+});
+
+test('users can filter their listings', function () {
+    $user = User::factory()->create();
+
+    VehicleListing::factory()->approved()->create([
+        'user_id' => $user->id,
+        'make' => 'Honda',
+        'model' => 'Civic',
+    ]);
+
+    VehicleListing::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+        'make' => 'Ford',
+        'model' => 'F-150',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('listings.index', ['status' => 'approved']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('listings/index')
+            ->has('listings', 1)
+            ->where('listings.0.make', 'Honda')
+            ->where('filters.status', 'approved')
+        );
+
+    $this->actingAs($user)
+        ->get(route('listings.index', ['q' => 'Ford']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('listings', 1)
+            ->where('listings.0.make', 'Ford')
+        );
+});
+
+test('users can edit their own listings', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $listing = VehicleListing::factory()->create([
+        'user_id' => $user->id,
+        'make' => 'Toyota',
+        'asking_price' => 15000,
+        'vin' => '1HGBH41JXMN109186',
+    ]);
+
+    VehicleListingImage::query()->create([
+        'vehicle_listing_id' => $listing->id,
+        'path' => 'vehicle-listings/test.jpg',
+        'sort_order' => 0,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('listings.edit', $listing))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('listings/edit')
+            ->where('listing.id', $listing->id)
+        );
+
+    $this->actingAs($user)
+        ->put(route('listings.update', $listing), [
+            'year' => $listing->year,
+            'make' => 'Toyota',
+            'model' => $listing->model,
+            'trim' => $listing->trim,
+            'mileage' => $listing->mileage,
+            'vin' => $listing->vin,
+            'title_status' => $listing->title_status,
+            'condition' => $listing->condition,
+            'exterior_color' => $listing->exterior_color,
+            'interior_color' => $listing->interior_color,
+            'transmission' => $listing->transmission,
+            'fuel_type' => $listing->fuel_type,
+            'drivetrain' => $listing->drivetrain,
+            'asking_price' => 16500,
+            'seller_notes' => $listing->seller_notes,
+            'contact_name' => $listing->contact_name,
+            'contact_email' => $listing->contact_email,
+            'contact_phone' => $listing->contact_phone,
+        ])
+        ->assertRedirect(route('listings.edit', ['listing' => $listing, 'step' => 'success'], absolute: false));
+
+    expect($listing->fresh()->asking_price)->toBe(16500);
+});
+
+test('users can delete their own listings', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $listing = VehicleListing::factory()->create(['user_id' => $user->id]);
+
+    VehicleListingImage::query()->create([
+        'vehicle_listing_id' => $listing->id,
+        'path' => 'vehicle-listings/test.jpg',
+        'sort_order' => 0,
+    ]);
+
+    $this->actingAs($user)
+        ->delete(route('listings.destroy', $listing))
+        ->assertRedirect(route('listings.index', absolute: false));
+
+    expect(VehicleListing::query()->find($listing->id))->toBeNull();
+});
+
+test('users cannot delete another users listing', function () {
+    $owner = User::factory()->create();
+    $other = User::factory()->create();
+    $listing = VehicleListing::factory()->create(['user_id' => $owner->id]);
+
+    $this->actingAs($other)
+        ->delete(route('listings.destroy', $listing))
+        ->assertForbidden();
+});
+
+test('users cannot edit another users listing', function () {
+    $owner = User::factory()->create();
+    $other = User::factory()->create();
+    $listing = VehicleListing::factory()->create(['user_id' => $owner->id]);
+
+    $this->actingAs($other)
+        ->get(route('listings.edit', $listing))
+        ->assertForbidden();
 });
 
 test('non admin cannot access admin listings', function () {

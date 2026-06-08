@@ -1,8 +1,9 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
     Camera,
     Car,
     Check,
+    CheckCircle2,
     ChevronLeft,
     ChevronRight,
     ImagePlus,
@@ -11,7 +12,7 @@ import {
     Sparkles,
     X,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -23,14 +24,18 @@ import { cn } from '@/lib/utils';
 import type {
     ListingFormDefaults,
     ListingFormOptions,
+    VehicleListing,
 } from '@/types/market';
 
-type Props = {
+export type ListingFormProps = {
+    mode: 'create' | 'edit';
     defaults: ListingFormDefaults;
     options: ListingFormOptions;
     approvalMode: string;
+    initialStep?: string;
+    listing?: VehicleListing;
+    successListing?: VehicleListing | null;
 };
-
 
 const STEPS = [
     { id: 1, title: 'Basics', hint: 'What are you selling?' },
@@ -38,6 +43,54 @@ const STEPS = [
     { id: 3, title: 'Photos', hint: 'Add great pictures' },
     { id: 4, title: 'Contact', hint: 'Review & save' },
 ] as const;
+
+const STEP_SLUGS = ['basics', 'details', 'photos', 'contact'] as const;
+
+function stepFromSlug(slug?: string | null): number {
+    if (!slug || slug === 'basics') {
+        return 1;
+    }
+
+    if (slug === 'success') {
+        return 5;
+    }
+
+    const index = STEP_SLUGS.indexOf(slug as (typeof STEP_SLUGS)[number]);
+
+    return index === -1 ? 1 : index + 1;
+}
+
+function slugFromStep(step: number): string {
+    if (step >= 1 && step <= STEPS.length) {
+        return STEP_SLUGS[step - 1];
+    }
+
+    return 'success';
+}
+
+function buildFormUrl(basePath: string, step: number): string {
+    const slug = slugFromStep(step);
+
+    if (slug === 'basics') {
+        return basePath;
+    }
+
+    return `${basePath}?step=${slug}`;
+}
+
+function updateStepUrl(
+    basePath: string,
+    step: number,
+    replace = false,
+): void {
+    const url = buildFormUrl(basePath, step);
+
+    if (replace) {
+        window.history.replaceState({ listingStep: step }, '', url);
+    } else {
+        window.history.pushState({ listingStep: step }, '', url);
+    }
+}
 
 const POPULAR_MAKES = [
     'Toyota',
@@ -51,16 +104,42 @@ const POPULAR_MAKES = [
 ];
 
 const fieldClass =
-    'border-gray-300 focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30';
+    'border-input bg-background text-foreground focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30';
 const selectClass = cn(
-    'h-10 w-full rounded-md border bg-white px-3 text-sm shadow-xs outline-none',
-    'border-gray-300 focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30 focus-visible:ring-[3px]',
+    'h-10 w-full rounded-md border bg-background px-3 text-sm text-foreground shadow-xs outline-none',
+    'border-input focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30 focus-visible:ring-[3px]',
 );
 
 const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/i;
 
+function sanitizeVin(value: string): string {
+    return value
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .replace(/[IOQ]/g, '')
+        .slice(0, 17);
+}
+
 function isValidVin(vin: string): boolean {
-    return VIN_PATTERN.test(vin.trim());
+    return VIN_PATTERN.test(sanitizeVin(vin));
+}
+
+function getVinValidationMessage(vin: string): string | undefined {
+    const normalized = sanitizeVin(vin);
+
+    if (!normalized) {
+        return undefined;
+    }
+
+    if (normalized.length < 17) {
+        return `VIN must be 17 characters (${normalized.length}/17). No I, O, or Q.`;
+    }
+
+    if (!isValidVin(normalized)) {
+        return 'VIN can only use letters and numbers (no I, O, or Q).';
+    }
+
+    return undefined;
 }
 
 function fieldToStep(field: string): number {
@@ -120,15 +199,15 @@ function SelectField({
 }) {
     return (
         <div className="grid gap-2">
-            <Label htmlFor={id} className="font-medium text-gray-700">
+            <Label htmlFor={id} className="font-medium text-foreground">
                 {label}
                 {!required && (
-                    <span className="ml-1 font-normal text-gray-400">
+                    <span className="ml-1 font-normal text-muted-foreground">
                         (optional)
                     </span>
                 )}
             </Label>
-            {hint && <p className="text-xs text-gray-500">{hint}</p>}
+            {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
             <select
                 id={id}
                 name={name}
@@ -146,6 +225,130 @@ function SelectField({
                     </option>
                 ))}
             </select>
+            <InputError message={error} />
+        </div>
+    );
+}
+
+function SearchableSelectField({
+    id,
+    label,
+    name,
+    options,
+    value,
+    onChange,
+    required = true,
+    error,
+    hint,
+    placeholder,
+}: {
+    id: string;
+    label: string;
+    name: string;
+    options: string[];
+    value: string;
+    onChange: (value: string) => void;
+    required?: boolean;
+    error?: string;
+    hint?: string;
+    placeholder?: string;
+}) {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState(value);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setQuery(value);
+    }, [value]);
+
+    const filteredOptions = useMemo(() => {
+        const trimmed = query.trim();
+
+        if (!trimmed) {
+            return options;
+        }
+
+        return options.filter((option) => option.includes(trimmed));
+    }, [options, query]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(event.target as Node)
+            ) {
+                setOpen(false);
+                setQuery(value);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () =>
+            document.removeEventListener('mousedown', handleClickOutside);
+    }, [value]);
+
+    const selectOption = (option: string) => {
+        onChange(option);
+        setQuery(option);
+        setOpen(false);
+    };
+
+    return (
+        <div className="grid gap-2" ref={containerRef}>
+            <Label htmlFor={id} className="font-medium text-foreground">
+                {label}
+                {!required && (
+                    <span className="ml-1 font-normal text-muted-foreground">
+                        (optional)
+                    </span>
+                )}
+            </Label>
+            {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+            <div className="relative">
+                <Input
+                    id={id}
+                    name={name}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={query}
+                    placeholder={placeholder ?? `Search ${label.toLowerCase()}…`}
+                    className={fieldClass}
+                    onChange={(event) => {
+                        const nextQuery = event.target.value;
+
+                        setQuery(nextQuery);
+                        setOpen(true);
+                        onChange(
+                            options.includes(nextQuery) ? nextQuery : '',
+                        );
+                    }}
+                    onFocus={() => setOpen(true)}
+                />
+                {open && filteredOptions.length > 0 && (
+                    <ul className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-border bg-card py-1 shadow-md">
+                        {filteredOptions.map((option) => (
+                            <li key={option}>
+                                <button
+                                    type="button"
+                                    className={cn(
+                                        'w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted',
+                                        value === option &&
+                                            'bg-muted font-medium',
+                                    )}
+                                    onMouseDown={(event) =>
+                                        event.preventDefault()
+                                    }
+                                    onClick={() => selectOption(option)}
+                                >
+                                    {option}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
             <InputError message={error} />
         </div>
     );
@@ -182,15 +385,15 @@ function TextField({
 }) {
     return (
         <div className="grid gap-2">
-            <Label htmlFor={id} className="font-medium text-gray-700">
+            <Label htmlFor={id} className="font-medium text-foreground">
                 {label}
                 {!required && (
-                    <span className="ml-1 font-normal text-gray-400">
+                    <span className="ml-1 font-normal text-muted-foreground">
                         (optional)
                     </span>
                 )}
             </Label>
-            {hint && <p className="text-xs text-gray-500">{hint}</p>}
+            {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
             <Input
                 id={id}
                 name={name}
@@ -209,45 +412,120 @@ function TextField({
     );
 }
 
-export default function CreateListing({
+function ListingSuccessStep({
+    listing,
+    approvalMode,
+    mode,
+}: {
+    listing: VehicleListing;
+    approvalMode: string;
+    mode: 'create' | 'edit';
+}) {
+    const isLive = listing.status === 'approved';
+
+    return (
+        <section className="space-y-6 rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm dark:border-emerald-800 dark:bg-emerald-950/40">
+            <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="size-7" />
+            </div>
+            <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-foreground">
+                    {mode === 'edit'
+                        ? 'Listing updated!'
+                        : 'Listing submitted!'}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                    {mode === 'edit'
+                        ? 'Your changes have been saved successfully.'
+                        : isLive
+                          ? 'Your vehicle is now live on Web2Autos Market. Buyers can browse and contact you.'
+                          : approvalMode === 'automatic'
+                            ? 'Your listing is being processed and will appear shortly.'
+                            : 'Your listing is pending review. We will notify you once it is approved.'}
+                </p>
+            </div>
+            <div className="rounded-lg border border-border bg-card px-4 py-3 text-left">
+                <p className="font-semibold text-foreground">{listing.title}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {formatPrice(listing.asking_price)} · {listing.status_label}
+                </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <Button asChild variant="outline">
+                    <Link href="/listings">My Listings</Link>
+                </Button>
+                <Button
+                    asChild
+                    className="bg-[#1565C0] hover:bg-[#0D47A1]"
+                >
+                    <Link href={`/market/${listing.id}`}>View Listing</Link>
+                </Button>
+                <Button asChild variant="outline">
+                    <Link href="/dashboard">Dashboard</Link>
+                </Button>
+            </div>
+        </section>
+    );
+}
+
+export function ListingForm({
+    mode,
     defaults,
     options,
     approvalMode,
-}: Props) {
-    const [step, setStep] = useState(1);
+    initialStep = 'basics',
+    listing,
+    successListing = null,
+}: ListingFormProps) {
+    const isEditing = mode === 'edit' && !!listing;
+    const basePath = isEditing
+        ? `/listings/${listing!.id}/edit`
+        : '/listings/create';
+
+    const [step, setStep] = useState(() =>
+        successListing ? 5 : stepFromSlug(initialStep),
+    );
     const [previews, setPreviews] = useState<{ url: string; file: File }[]>(
         [],
     );
+    const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
     const [dragOver, setDragOver] = useState(false);
 
-    const years = useMemo(
-        () =>
-            Array.from({ length: 36 }, (_, i) =>
-                String(new Date().getFullYear() + 1 - i),
-            ),
-        [],
-    );
+    const keptExistingImages =
+        listing?.images.filter(
+            (image) => !removedImageIds.includes(image.id),
+        ) ?? [];
+
+    const years = useMemo(() => {
+        const maxYear = new Date().getFullYear() + 1;
+
+        return Array.from({ length: maxYear - 1900 + 1 }, (_, i) =>
+            String(maxYear - i),
+        );
+    }, []);
 
     const { data, setData, post, processing, errors } = useForm({
-        year: '',
-        make: '',
-        model: '',
-        trim: '',
-        mileage: '',
-        vin: '',
-        title_status: '',
-        condition: '',
-        exterior_color: '',
-        interior_color: '',
-        transmission: '',
-        fuel_type: '',
-        drivetrain: '',
-        asking_price: '',
-        seller_notes: '',
-        contact_name: defaults.contact_name,
-        contact_email: defaults.contact_email,
-        contact_phone: '',
+        year: listing ? String(listing.year) : '',
+        make: listing?.make ?? '',
+        model: listing?.model ?? '',
+        trim: listing?.trim ?? '',
+        mileage: listing ? String(listing.mileage) : '',
+        vin: listing?.vin ?? '',
+        title_status: listing?.title_status ?? '',
+        condition: listing?.condition ?? '',
+        exterior_color: listing?.exterior_color ?? '',
+        interior_color: listing?.interior_color ?? '',
+        transmission: listing?.transmission ?? '',
+        fuel_type: listing?.fuel_type ?? '',
+        drivetrain: listing?.drivetrain ?? '',
+        asking_price: listing ? String(listing.asking_price) : '',
+        seller_notes: listing?.seller_notes ?? '',
+        contact_name: listing?.contact_name ?? defaults.contact_name,
+        contact_email: listing?.contact_email ?? defaults.contact_email,
+        contact_phone: listing?.contact_phone ?? '',
         images: [] as File[],
+        remove_images: [] as number[],
+        ...(isEditing ? { _method: 'put' as const } : {}),
     });
 
     const listingTitle =
@@ -275,18 +553,39 @@ export default function CreateListing({
                 return;
             }
 
+            const total =
+                keptExistingImages.length + previews.length + selected.length;
+
+            if (total > 20) {
+                toast.error('You can have at most 20 photos per listing.');
+                return;
+            }
+
             const next = [
                 ...previews,
                 ...selected.map((file) => ({
                     url: URL.createObjectURL(file),
                     file,
                 })),
-            ].slice(0, 20);
+            ];
 
             syncImages(next);
         },
-        [previews, syncImages],
+        [keptExistingImages.length, previews, syncImages],
     );
+
+    const toggleRemoveExistingImage = (imageId: number) => {
+        setRemovedImageIds((current) => {
+            const next = current.includes(imageId)
+                ? current.filter((id) => id !== imageId)
+                : [...current, imageId];
+
+            setData('remove_images', next);
+            return next;
+        });
+    };
+
+    const totalPhotoCount = keptExistingImages.length + previews.length;
 
     const removeImage = (index: number) => {
         const next = previews.filter((_, i) => i !== index);
@@ -315,7 +614,7 @@ export default function CreateListing({
 
         return fields.every((field) => {
             if (field === 'images') {
-                return data.images.length > 0;
+                return totalPhotoCount > 0;
             }
 
             const value = data[field];
@@ -332,6 +631,65 @@ export default function CreateListing({
         });
     };
 
+    useEffect(() => {
+        if (successListing) {
+            setStep(5);
+            updateStepUrl(basePath, 5, true);
+            return;
+        }
+
+        const urlStep = stepFromSlug(
+            new URLSearchParams(window.location.search).get('step') ??
+                initialStep,
+        );
+
+        if (urlStep === 5) {
+            setStep(1);
+            updateStepUrl(basePath, 1, true);
+            return;
+        }
+
+        let allowedStep = urlStep;
+
+        if (!isEditing) {
+            for (let s = 1; s < urlStep; s += 1) {
+                if (!canContinue(s)) {
+                    allowedStep = s;
+                    break;
+                }
+            }
+        }
+
+        setStep(allowedStep);
+        updateStepUrl(basePath, allowedStep, true);
+        // Only sync from the URL when the page first loads or after submit.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [successListing, initialStep, basePath, isEditing]);
+
+    useEffect(() => {
+        const handlePopState = () => {
+            const urlStep = stepFromSlug(
+                new URLSearchParams(window.location.search).get('step'),
+            );
+
+            if (urlStep === 5) {
+                if (successListing) {
+                    setStep(5);
+                } else {
+                    setStep(1);
+                    updateStepUrl(basePath, 1, true);
+                }
+                return;
+            }
+
+            setStep(urlStep);
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [successListing, basePath]);
+
     const validateBeforeSave = (): boolean => {
         for (let s = 1; s <= STEPS.length; s += 1) {
             if (!canContinue(s)) {
@@ -340,8 +698,8 @@ export default function CreateListing({
                     toast.error(
                         'VIN must be exactly 17 characters (letters and numbers only, no I, O, or Q).',
                     );
-                } else if (s === 3 && data.images.length === 0) {
-                    toast.error('Please upload at least one vehicle photo.');
+                } else if (s === 3 && totalPhotoCount === 0) {
+                    toast.error('Please keep or upload at least one vehicle photo.');
                 } else {
                     toast.error(
                         'Please complete all required fields before saving.',
@@ -356,13 +714,34 @@ export default function CreateListing({
 
     const goNext = () => {
         if (step < STEPS.length && canContinue()) {
-            setStep((s) => s + 1);
+            const nextStep = step + 1;
+            setStep(nextStep);
+            updateStepUrl(basePath, nextStep);
+            return;
         }
+
+        if (step === 2) {
+            if (!data.vin.trim()) {
+                toast.error('Please enter the vehicle VIN.');
+            } else if (!isValidVin(data.vin)) {
+                toast.error(
+                    getVinValidationMessage(data.vin) ??
+                        'VIN must be exactly 17 characters (no I, O, or Q).',
+                );
+            } else {
+                toast.error('Please complete all required fields on this step.');
+            }
+            return;
+        }
+
+        toast.error('Please complete all required fields before continuing.');
     };
 
     const goBack = () => {
-        if (step > 1) {
-            setStep((s) => s - 1);
+        if (step > 1 && step <= STEPS.length) {
+            const previousStep = step - 1;
+            setStep(previousStep);
+            updateStepUrl(basePath, previousStep);
         }
     };
 
@@ -373,15 +752,23 @@ export default function CreateListing({
             return;
         }
 
-        post('/listings', {
+        const submitUrl = isEditing
+            ? `/listings/${listing!.id}`
+            : '/listings';
+
+        post(submitUrl, {
             forceFormData: true,
             onError: (formErrors) => {
                 const firstField = Object.keys(formErrors)[0];
                 if (firstField) {
-                    setStep(fieldToStep(firstField));
+                    const errorStep = fieldToStep(firstField);
+                    setStep(errorStep);
+                    updateStepUrl(basePath, errorStep, true);
                 }
                 toast.error(
-                    'Could not save your listing. Please fix the errors below.',
+                    isEditing
+                        ? 'Could not update your listing. Please fix the errors below.'
+                        : 'Could not save your listing. Please fix the errors below.',
                 );
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             },
@@ -390,22 +777,47 @@ export default function CreateListing({
 
     const errorMessages = Object.values(errors).filter(Boolean) as string[];
 
+    const isSuccess = step === 5 && successListing;
+    const coverPreviewUrl =
+        previews[0]?.url ??
+        keptExistingImages[0]?.url ??
+        listing?.images[0]?.url;
+
     return (
         <>
-            <Head title="List Your Vehicle" />
+            <Head
+                title={
+                    isSuccess
+                        ? isEditing
+                            ? 'Listing Updated'
+                            : 'Listing Submitted'
+                        : isEditing
+                          ? 'Edit Listing'
+                          : 'List Your Vehicle'
+                }
+            />
 
             <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 pb-24 md:pb-8">
                 {/* Header */}
                 <div className="space-y-2">
-                    <p className="text-sm font-medium text-[#1565C0]">
+                    <p className="text-sm font-medium text-[#1565C0] dark:text-[#90caf9]">
                         Web2Autos Market
                     </p>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-                        List your vehicle
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                        {isSuccess
+                            ? 'All done!'
+                            : isEditing
+                              ? 'Edit your listing'
+                              : 'List your vehicle'}
                     </h1>
-                    <p className="text-sm text-gray-500">
-                        Takes about 5 minutes. You can review everything before
-                        saving.
+                    <p className="text-sm text-muted-foreground">
+                        {isSuccess
+                            ? isEditing
+                                ? 'Your changes have been saved successfully.'
+                                : 'Your classified ad has been saved successfully.'
+                            : isEditing
+                              ? 'Update your vehicle details step by step.'
+                              : 'Takes about 5 minutes. You can review everything before saving.'}
                     </p>
                 </div>
 
@@ -425,7 +837,16 @@ export default function CreateListing({
                     </div>
                 )}
 
+                {isSuccess && successListing && (
+                    <ListingSuccessStep
+                        listing={successListing}
+                        approvalMode={approvalMode}
+                        mode={mode}
+                    />
+                )}
+
                 {/* Step progress */}
+                {!isSuccess && (
                 <nav aria-label="Listing steps">
                     <ol className="flex items-center gap-1 sm:gap-2">
                         {STEPS.map((s, index) => {
@@ -446,7 +867,7 @@ export default function CreateListing({
                                                     'bg-[#1565C0] text-white ring-4 ring-[#1565C0]/20',
                                                 !done &&
                                                     !active &&
-                                                    'bg-gray-100 text-gray-400',
+                                                    'bg-muted text-muted-foreground',
                                             )}
                                         >
                                             {done ? (
@@ -459,8 +880,8 @@ export default function CreateListing({
                                             className={cn(
                                                 'hidden truncate text-center text-xs font-medium sm:block',
                                                 active
-                                                    ? 'text-gray-900'
-                                                    : 'text-gray-400',
+                                                    ? 'text-foreground'
+                                                    : 'text-muted-foreground',
                                             )}
                                         >
                                             {s.title}
@@ -472,7 +893,7 @@ export default function CreateListing({
                                                 'mx-1 h-0.5 min-w-3 flex-1 rounded-full sm:mx-2',
                                                 step > s.id
                                                     ? 'bg-[#1565C0]'
-                                                    : 'bg-gray-200',
+                                                    : 'bg-muted',
                                             )}
                                         />
                                     )}
@@ -480,23 +901,24 @@ export default function CreateListing({
                             );
                         })}
                     </ol>
-                    <p className="mt-3 text-center text-sm text-gray-500">
+                    <p className="mt-3 text-center text-sm text-muted-foreground">
                         Step {step} of {STEPS.length} —{' '}
                         {STEPS[step - 1].hint}
                     </p>
                 </nav>
+                )}
 
                 {/* Live preview card */}
-                {(data.year || data.make || data.asking_price) && (
+                {!isSuccess && (data.year || data.make || data.asking_price) && (
                     <div className="flex items-center gap-4 rounded-xl border border-[#1565C0]/20 bg-[#1565C0]/5 px-4 py-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-card shadow-sm">
                             <Car className="size-5 text-[#1565C0]" />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-gray-900">
+                            <p className="truncate text-sm font-semibold text-foreground">
                                 {listingTitle}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                                 {data.mileage
                                     ? `${Number(data.mileage).toLocaleString()} mi`
                                     : 'Mileage not set'}
@@ -504,23 +926,24 @@ export default function CreateListing({
                                     ` · ${formatPrice(Number(data.asking_price))}`}
                             </p>
                         </div>
-                        {previews[0] && (
+                        {coverPreviewUrl && (
                             <img
-                                src={previews[0].url}
+                                src={coverPreviewUrl}
                                 alt="Preview"
-                                className="size-12 shrink-0 rounded-lg object-cover ring-1 ring-gray-200"
+                                className="size-12 shrink-0 rounded-lg object-cover ring-1 ring-border"
                             />
                         )}
                     </div>
                 )}
 
+                {!isSuccess && (
                 <form onSubmit={submit} encType="multipart/form-data">
                     {/* Step 1 — Basics */}
                     {step === 1 && (
-                        <section className="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <div className="flex items-start gap-3 rounded-lg bg-gray-50 p-4">
+                        <section className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm">
+                            <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-4">
                                 <Sparkles className="mt-0.5 size-4 shrink-0 text-[#1565C0]" />
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-muted-foreground">
                                     Start with the basics buyers search for
                                     first — year, make, model, mileage, and
                                     your asking price.
@@ -528,7 +951,7 @@ export default function CreateListing({
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
-                                <SelectField
+                                <SearchableSelectField
                                     id="year"
                                     label="Year"
                                     name="year"
@@ -536,6 +959,7 @@ export default function CreateListing({
                                     value={data.year}
                                     onChange={(v) => setData('year', v)}
                                     error={errors.year}
+                                    placeholder="Type to search year…"
                                 />
                                 <TextField
                                     id="make"
@@ -549,7 +973,7 @@ export default function CreateListing({
                             </div>
 
                             <div>
-                                <p className="mb-2 text-xs font-medium text-gray-500">
+                                <p className="mb-2 text-xs font-medium text-muted-foreground">
                                     Popular makes — tap to fill
                                 </p>
                                 <div className="flex flex-wrap gap-2">
@@ -564,7 +988,7 @@ export default function CreateListing({
                                                 'rounded-full border px-3 py-1 text-xs font-medium transition',
                                                 data.make === make
                                                     ? 'border-[#1565C0] bg-[#1565C0] text-white'
-                                                    : 'border-gray-200 bg-white text-gray-600 hover:border-[#1565C0]/40 hover:text-[#1565C0]',
+                                                    : 'border-border bg-card text-muted-foreground hover:border-[#1565C0]/40 hover:text-[#1565C0]',
                                             )}
                                         >
                                             {make}
@@ -625,7 +1049,7 @@ export default function CreateListing({
 
                     {/* Step 2 — Details */}
                     {step === 2 && (
-                        <section className="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <section className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm">
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <TextField
                                     id="vin"
@@ -633,12 +1057,15 @@ export default function CreateListing({
                                     name="vin"
                                     value={data.vin}
                                     onChange={(v) =>
-                                        setData('vin', v.toUpperCase())
+                                        setData('vin', sanitizeVin(v))
                                     }
                                     maxLength={17}
-                                    placeholder="17-character VIN"
-                                    hint="Exactly 17 characters — found on dashboard or door jamb (no I, O, or Q)"
-                                    error={errors.vin}
+                                    placeholder="e.g. 1HGBH41JXMN109186"
+                                    hint={`${sanitizeVin(data.vin).length}/17 characters — on dashboard or door jamb (no I, O, or Q)`}
+                                    error={
+                                        errors.vin ??
+                                        getVinValidationMessage(data.vin)
+                                    }
                                 />
                                 <SelectField
                                     id="title_status"
@@ -718,14 +1145,14 @@ export default function CreateListing({
                             <div className="grid gap-2">
                                 <Label
                                     htmlFor="seller_notes"
-                                    className="font-medium text-gray-700"
+                                    className="font-medium text-foreground"
                                 >
                                     Seller Notes{' '}
-                                    <span className="font-normal text-gray-400">
+                                    <span className="font-normal text-muted-foreground">
                                         (optional)
                                     </span>
                                 </Label>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-foreground">
                                     Mention maintenance history, upgrades, or
                                     anything that helps buyers decide.
                                 </p>
@@ -751,7 +1178,7 @@ export default function CreateListing({
 
                     {/* Step 3 — Photos */}
                     {step === 3 && (
-                        <section className="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <section className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm">
                             <div className="flex items-start gap-3 rounded-lg bg-amber-50 p-4 ring-1 ring-amber-100">
                                 <Camera className="mt-0.5 size-4 shrink-0 text-amber-600" />
                                 <div className="text-sm text-amber-900">
@@ -781,14 +1208,14 @@ export default function CreateListing({
                                     'flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 transition',
                                     dragOver
                                         ? 'border-[#1565C0] bg-[#1565C0]/5'
-                                        : 'border-gray-300 bg-gray-50 hover:border-[#1565C0]/40',
+                                        : 'border-input bg-muted/50 hover:border-[#1565C0]/40',
                                 )}
                             >
-                                <ImagePlus className="size-10 text-gray-400" />
-                                <p className="mt-3 text-sm font-medium text-gray-700">
+                                <ImagePlus className="size-10 text-muted-foreground" />
+                                <p className="mt-3 text-sm font-medium text-foreground">
                                     Drag & drop photos here
                                 </p>
-                                <p className="mt-1 text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-muted-foreground">
                                     or click to browse — up to 20 images (JPEG,
                                     PNG, WebP, max 10 MB each)
                                 </p>
@@ -810,23 +1237,70 @@ export default function CreateListing({
                             </div>
                             <InputError message={errors.images} />
 
+                            {isEditing && listing.images.length > 0 && (
+                                <div>
+                                    <p className="mb-3 text-sm font-medium text-foreground">
+                                        Current photos — tap to remove
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                        {listing.images.map((image) => {
+                                            const marked =
+                                                removedImageIds.includes(
+                                                    image.id,
+                                                );
+
+                                            return (
+                                                <button
+                                                    key={image.id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        toggleRemoveExistingImage(
+                                                            image.id,
+                                                        )
+                                                    }
+                                                    className={cn(
+                                                        'group relative aspect-square overflow-hidden rounded-lg ring-2 transition',
+                                                        marked
+                                                            ? 'opacity-40 ring-red-400'
+                                                            : 'ring-border hover:ring-[#1565C0]',
+                                                    )}
+                                                >
+                                                    <img
+                                                        src={image.url}
+                                                        alt=""
+                                                        className="size-full object-cover"
+                                                    />
+                                                    {marked && (
+                                                        <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-xs font-semibold text-white">
+                                                            Removed
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
                             {previews.length > 0 && (
                                 <div>
-                                    <p className="mb-3 text-sm font-medium text-gray-700">
-                                        {previews.length} photo
+                                    <p className="mb-3 text-sm font-medium text-foreground">
+                                        {previews.length} new photo
                                         {previews.length !== 1 ? 's' : ''}{' '}
                                         selected
-                                        {previews[0] && (
-                                            <span className="ml-2 font-normal text-gray-500">
-                                                — first photo is the cover
-                                            </span>
-                                        )}
+                                        {previews[0] &&
+                                            keptExistingImages.length ===
+                                                0 && (
+                                                <span className="ml-2 font-normal text-muted-foreground">
+                                                    — first photo is the cover
+                                                </span>
+                                            )}
                                     </p>
                                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                                         {previews.map((preview, index) => (
                                             <div
                                                 key={preview.url}
-                                                className="group relative aspect-square overflow-hidden rounded-lg ring-1 ring-gray-200"
+                                                className="group relative aspect-square overflow-hidden rounded-lg ring-1 ring-border"
                                             >
                                                 <img
                                                     src={preview.url}
@@ -859,14 +1333,14 @@ export default function CreateListing({
                     {/* Step 4 — Contact & review */}
                     {step === 4 && (
                         <div className="space-y-6">
-                            <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
                                 <div className="flex items-center gap-2">
                                     <Phone className="size-4 text-[#1565C0]" />
-                                    <h2 className="font-semibold text-gray-900">
+                                    <h2 className="font-semibold text-foreground">
                                         Contact Information
                                     </h2>
                                 </div>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-muted-foreground">
                                     Pre-filled from your account. Buyers will use
                                     this to reach you about your listing.
                                 </p>
@@ -910,24 +1384,24 @@ export default function CreateListing({
                                 </div>
                             </section>
 
-                            <section className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-6">
+                            <section className="space-y-3 rounded-xl border border-border bg-muted/50 p-6">
                                 <div className="flex items-center gap-2">
-                                    <Info className="size-4 text-gray-500" />
-                                    <h2 className="font-semibold text-gray-900">
+                                    <Info className="size-4 text-muted-foreground" />
+                                    <h2 className="font-semibold text-foreground">
                                         Listing Summary
                                     </h2>
                                 </div>
                                 <dl className="grid gap-2 text-sm sm:grid-cols-2">
                                     <div>
-                                        <dt className="text-gray-500">
+                                        <dt className="text-muted-foreground">
                                             Vehicle
                                         </dt>
-                                        <dd className="font-medium text-gray-900">
+                                        <dd className="font-medium text-foreground">
                                             {listingTitle}
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-500">Price</dt>
+                                        <dt className="text-muted-foreground">Price</dt>
                                         <dd className="font-bold text-[#1565C0]">
                                             {data.asking_price
                                                 ? formatPrice(
@@ -939,44 +1413,46 @@ export default function CreateListing({
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-500">
+                                        <dt className="text-muted-foreground">
                                             Mileage
                                         </dt>
-                                        <dd className="font-medium text-gray-900">
+                                        <dd className="font-medium text-foreground">
                                             {data.mileage
                                                 ? `${Number(data.mileage).toLocaleString()} mi`
                                                 : '—'}
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-500">
+                                        <dt className="text-muted-foreground">
                                             Photos
                                         </dt>
-                                        <dd className="font-medium text-gray-900">
-                                            {previews.length} uploaded
+                                        <dd className="font-medium text-foreground">
+                                            {totalPhotoCount} total
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-500">
+                                        <dt className="text-muted-foreground">
                                             Condition
                                         </dt>
-                                        <dd className="font-medium text-gray-900">
+                                        <dd className="font-medium text-foreground">
                                             {data.condition || '—'}
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-500">
+                                        <dt className="text-muted-foreground">
                                             Drivetrain
                                         </dt>
-                                        <dd className="font-medium text-gray-900">
+                                        <dd className="font-medium text-foreground">
                                             {data.drivetrain || '—'}
                                         </dd>
                                     </div>
                                 </dl>
-                                <p className="border-t border-gray-200 pt-3 text-xs text-gray-500">
-                                    {approvalMode === 'automatic'
-                                        ? 'When you save, your listing appears on My Listings and the homepage.'
-                                        : 'When you save, your listing appears on My Listings and goes live after admin approval.'}
+                                <p className="border-t border-border pt-3 text-xs text-muted-foreground">
+                                    {isEditing
+                                        ? 'Saving updates your listing on My Listings and the marketplace.'
+                                        : approvalMode === 'automatic'
+                                          ? 'When you save, your listing appears on My Listings and the homepage.'
+                                          : 'When you save, your listing appears on My Listings and goes live after admin approval.'}
                                 </p>
                             </section>
                         </div>
@@ -989,7 +1465,7 @@ export default function CreateListing({
                             variant="outline"
                             onClick={goBack}
                             disabled={step === 1 || processing}
-                            className="border-gray-300"
+                            className="border-input"
                         >
                             <ChevronLeft />
                             Back
@@ -999,8 +1475,8 @@ export default function CreateListing({
                             <Button
                                 type="button"
                                 onClick={goNext}
-                                disabled={!canContinue() || processing}
-                                className="bg-[#1565C0] hover:bg-[#0D47A1]"
+                                disabled={processing}
+                                className="bg-[#1565C0] hover:bg-[#0D47A1] disabled:opacity-50"
                             >
                                 Continue
                                 <ChevronRight />
@@ -1012,13 +1488,31 @@ export default function CreateListing({
                                 className="min-w-36 bg-[#1565C0] hover:bg-[#0D47A1]"
                             >
                                 {processing && <Spinner />}
-                                Save Listing
+                                {isEditing ? 'Save Changes' : 'Save Listing'}
                             </Button>
                         )}
                     </div>
                 </form>
+                )}
             </div>
         </>
+    );
+}
+
+type CreatePageProps = Omit<ListingFormProps, 'mode' | 'listing'> & {
+    createdListing?: VehicleListing | null;
+};
+
+export default function CreateListing({
+    createdListing = null,
+    ...props
+}: CreatePageProps) {
+    return (
+        <ListingForm
+            mode="create"
+            successListing={createdListing}
+            {...props}
+        />
     );
 }
 

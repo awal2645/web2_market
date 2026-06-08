@@ -18,14 +18,14 @@ export function FeaturedSection({
     usingSavedListings = false,
 }: Props) {
     return (
-        <section id="vehicles" className="bg-gray-50 py-12 lg:py-16">
+        <section id="vehicles" className="bg-muted/50 py-12 lg:py-16">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="mb-8 flex items-end justify-between">
                     <div>
-                        <h2 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">
+                        <h2 className="text-2xl font-extrabold text-foreground sm:text-3xl">
                             Featured Listings
                         </h2>
-                        <p className="mt-1 text-gray-500">
+                        <p className="mt-1 text-muted-foreground">
                             {usingSavedListings
                                 ? 'Latest vehicles listed on Web2Autos Market'
                                 : 'Top picks from private sellers & dealers'}

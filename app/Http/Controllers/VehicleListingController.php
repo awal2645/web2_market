@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Enums\ListingStatus;
 use App\Http\Requests\StoreVehicleListingRequest;
+use App\Http\Requests\UpdateVehicleListingRequest;
 use App\Http\Resources\VehicleListingResource;
 use App\Models\VehicleListing;
 use App\Models\VehicleListingImage;
 use App\Services\MarketSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,21 +20,75 @@ class VehicleListingController extends Controller
 {
     public function index(Request $request): Response
     {
-        $listings = VehicleListing::query()
-            ->where('user_id', $request->user()->id)
-            ->with('images')
-            ->latest()
-            ->get()
-            ->map(fn (VehicleListing $listing) => VehicleListingResource::make($listing));
+        $userId = $request->user()->id;
+
+        $filters = [
+            'status' => $request->string('status', 'all')->toString(),
+            'q' => $request->string('q')->toString(),
+            'sort' => $request->string('sort', 'newest')->toString(),
+        ];
+
+        $query = VehicleListing::query()
+            ->where('user_id', $userId)
+            ->with('images');
+
+        if ($filters['status'] !== 'all') {
+            $query->where('status', $filters['status']);
+        }
+
+        if ($filters['q']) {
+            $search = '%'.$filters['q'].'%';
+            $query->where(function ($builder) use ($search) {
+                $builder->where('make', 'like', $search)
+                    ->orWhere('model', 'like', $search)
+                    ->orWhere('trim', 'like', $search)
+                    ->orWhere('vin', 'like', $search);
+            });
+        }
+
+        match ($filters['sort']) {
+            'price_asc' => $query->orderBy('asking_price'),
+            'price_desc' => $query->orderByDesc('asking_price'),
+            'oldest' => $query->oldest(),
+            default => $query->latest(),
+        };
+
+        $counts = VehicleListing::query()
+            ->where('user_id', $userId)
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
         return Inertia::render('listings/index', [
-            'listings' => $listings,
+            'listings' => $query->get()
+                ->map(fn (VehicleListing $listing) => VehicleListingResource::make($listing)),
+            'filters' => $filters,
+            'counts' => [
+                'all' => $counts->sum(),
+                'approved' => (int) ($counts[ListingStatus::Approved->value] ?? 0),
+                'pending' => (int) ($counts[ListingStatus::Pending->value] ?? 0),
+                'rejected' => (int) ($counts[ListingStatus::Rejected->value] ?? 0),
+            ],
         ]);
     }
 
     public function create(Request $request): Response
     {
         $user = $request->user();
+        $createdListing = null;
+
+        if ($request->query('step') === 'success' && $request->session()->has('created_listing_id')) {
+            $listing = VehicleListing::query()
+                ->where('id', $request->session()->get('created_listing_id'))
+                ->where('user_id', $user->id)
+                ->with('images')
+                ->first();
+
+            if ($listing) {
+                $createdListing = VehicleListingResource::make($listing);
+                $request->session()->forget('created_listing_id');
+            }
+        }
 
         return Inertia::render('listings/create', [
             'defaults' => [
@@ -40,6 +97,8 @@ class VehicleListingController extends Controller
             ],
             'options' => $this->formOptions(),
             'approvalMode' => app(MarketSettings::class)->approvalMode()->value,
+            'initialStep' => $request->query('step', 'basics'),
+            'createdListing' => $createdListing,
         ]);
     }
 
@@ -63,6 +122,120 @@ class VehicleListingController extends Controller
 
         $request->user()->update([
             'listing_prompt_completed_at' => now(),
+        ]);
+
+        $status = $marketSettings->initialListingStatus();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => $status === ListingStatus::Approved
+                ? 'Your listing is live on Web2Autos Market!'
+                : 'Your listing was submitted and is pending review.',
+        ]);
+
+        return redirect()
+            ->route('listings.create', ['step' => 'success'])
+            ->with('created_listing_id', $listing->id);
+    }
+
+    public function edit(Request $request, VehicleListing $listing): Response
+    {
+        abort_unless($listing->user_id === $request->user()->id, 403);
+
+        $listing->load('images');
+        $successListing = null;
+
+        if ($request->query('step') === 'success' && $request->session()->has('updated_listing_id')) {
+            $updated = VehicleListing::query()
+                ->where('id', $request->session()->get('updated_listing_id'))
+                ->where('user_id', $request->user()->id)
+                ->with('images')
+                ->first();
+
+            if ($updated) {
+                $successListing = VehicleListingResource::make($updated);
+                $request->session()->forget('updated_listing_id');
+            }
+        }
+
+        return Inertia::render('listings/edit', [
+            'listing' => VehicleListingResource::make($listing),
+            'options' => $this->formOptions(),
+            'approvalMode' => app(MarketSettings::class)->approvalMode()->value,
+            'initialStep' => $request->query('step', 'basics'),
+            'successListing' => $successListing,
+        ]);
+    }
+
+    public function update(UpdateVehicleListingRequest $request, VehicleListing $listing): RedirectResponse
+    {
+        abort_unless($listing->user_id === $request->user()->id, 403);
+
+        $listing->update($request->safe()->except(['images', 'remove_images']));
+
+        $removeIds = collect($request->input('remove_images', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->all();
+
+        if ($removeIds !== []) {
+            $imagesToRemove = $listing->images()
+                ->whereIn('id', $removeIds)
+                ->get();
+
+            foreach ($imagesToRemove as $image) {
+                Storage::disk('public')->delete($image->path);
+                $image->delete();
+            }
+        }
+
+        $nextSortOrder = (int) $listing->images()->max('sort_order') + 1;
+
+        foreach ($request->file('images', []) as $index => $image) {
+            $path = $image->store('vehicle-listings', 'public');
+
+            VehicleListingImage::query()->create([
+                'vehicle_listing_id' => $listing->id,
+                'path' => $path,
+                'sort_order' => $nextSortOrder + $index,
+            ]);
+        }
+
+        if ($listing->images()->count() === 0) {
+            throw ValidationException::withMessages([
+                'images' => 'Please keep or upload at least one photo of your vehicle.',
+            ]);
+        }
+
+        if ($listing->status === ListingStatus::Rejected) {
+            $listing->update(['status' => ListingStatus::Pending]);
+        }
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Your listing has been updated.',
+        ]);
+
+        return redirect()
+            ->route('listings.edit', ['listing' => $listing, 'step' => 'success'])
+            ->with('updated_listing_id', $listing->id);
+    }
+
+    public function destroy(Request $request, VehicleListing $listing): RedirectResponse
+    {
+        abort_unless($listing->user_id === $request->user()->id, 403);
+
+        $listing->load('images');
+
+        foreach ($listing->images as $image) {
+            Storage::disk('public')->delete($image->path);
+        }
+
+        $listing->delete();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Listing deleted.',
         ]);
 
         return redirect()->route('listings.index');

@@ -8,7 +8,7 @@ export default function AuthSimpleLayout({
     description,
 }: AuthLayoutProps) {
     return (
-        <div className="flex min-h-svh flex-col bg-gradient-to-br from-blue-50 via-white to-white">
+        <div className="flex min-h-svh flex-col bg-gradient-to-br from-blue-50 via-background to-background dark:from-blue-950/30 dark:via-background dark:to-background">
             {/* Red top accent bar */}
             <div className="h-1.5 w-full bg-[#1565C0]" />
 
@@ -32,13 +32,13 @@ export default function AuthSimpleLayout({
                     </div>
 
                     {/* Card */}
-                    <div className="rounded-2xl border border-blue-100 bg-white p-8 shadow-lg shadow-blue-100/50">
+                    <div className="rounded-2xl border border-blue-100 bg-card p-8 shadow-lg shadow-blue-100/50 dark:border-border dark:shadow-none">
                         <div className="mb-6 space-y-1 text-center">
-                            <h1 className="text-xl font-bold text-gray-900">
+                            <h1 className="text-xl font-bold text-foreground">
                                 {title}
                             </h1>
                             {description && (
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-muted-foreground">
                                     {description}
                                 </p>
                             )}
@@ -46,7 +46,7 @@ export default function AuthSimpleLayout({
                         {children}
                     </div>
 
-                    <p className="mt-6 text-center text-xs text-gray-400">
+                    <p className="mt-6 text-center text-xs text-muted-foreground">
                         &copy; {new Date().getFullYear()} Web2Autos.com
                     </p>
                 </div>

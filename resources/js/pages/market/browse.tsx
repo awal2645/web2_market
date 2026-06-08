@@ -101,22 +101,22 @@ export default function Browse({
         <>
             <Head title="Browse Vehicles" />
 
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-background">
                 <HomeHeader auth={auth} listHref={listHref} />
 
                 <div className="mx-auto max-w-7xl px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:pb-8">
                     <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+                        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
                             Browse Vehicles
                         </h1>
-                        <p className="mt-1 text-gray-500">
+                        <p className="mt-1 text-muted-foreground">
                             {listings.total} vehicle
                             {listings.total !== 1 ? 's' : ''} found
                         </p>
                     </div>
 
                     {/* Desktop filters */}
-                    <div className="mb-8 hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5 lg:block">
+                    <div className="mb-8 hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5 lg:block">
                         <BrowseFilterForm
                             localFilters={localFilters}
                             setLocalFilters={setLocalFilters}
@@ -129,11 +129,11 @@ export default function Browse({
 
                     {/* Results */}
                     {displayListings.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center">
-                            <p className="text-lg font-semibold text-gray-900">
+                        <div className="rounded-2xl border border-dashed border-input bg-card py-16 text-center">
+                            <p className="text-lg font-semibold text-foreground">
                                 No vehicles match your filters
                             </p>
-                            <p className="mt-2 text-sm text-gray-500">
+                            <p className="mt-2 text-sm text-muted-foreground">
                                 Try adjusting your search or browse all listings.
                             </p>
                             <button
@@ -166,8 +166,8 @@ export default function Browse({
                                                 link.active
                                                     ? 'bg-[#1565C0] text-white'
                                                     : link.url
-                                                      ? 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50'
-                                                      : 'cursor-not-allowed text-gray-300'
+                                                      ? 'bg-card text-foreground ring-1 ring-border hover:bg-muted/50 dark:hover:bg-muted'
+                                                      : 'cursor-not-allowed text-muted-foreground/50'
                                             }`}
                                             dangerouslySetInnerHTML={{
                                                 __html: link.label,
@@ -192,7 +192,7 @@ export default function Browse({
                         <span className="flex items-center gap-2 rounded-full bg-[#1565C0] px-10 py-3 text-sm font-bold tracking-wider text-white shadow-lg shadow-[#1565C0]/35">
                             FILTERS
                             {activeFilterCount > 0 && (
-                                <span className="flex size-5 items-center justify-center rounded-full bg-white text-xs font-bold text-[#1565C0]">
+                                <span className="flex size-5 items-center justify-center rounded-full bg-card text-xs font-bold text-[#1565C0]">
                                     {activeFilterCount}
                                 </span>
                             )}
@@ -206,7 +206,7 @@ export default function Browse({
                         side="bottom"
                         className="max-h-[90vh] overflow-y-auto rounded-t-2xl px-4 pb-8"
                     >
-                        <SheetHeader className="border-b border-gray-100 pb-4">
+                        <SheetHeader className="border-b border-border pb-4">
                             <SheetTitle className="flex items-center gap-2 text-base">
                                 <SlidersHorizontal className="size-4 text-[#1565C0]" />
                                 Filter &amp; Sort
@@ -252,13 +252,13 @@ function BrowseFilterForm({
     return (
         <>
             {!stacked && (
-                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                     <SlidersHorizontal className="size-4 text-[#1565C0]" />
                     Filter &amp; Sort
                 </div>
             )}
             <div className="mb-3">
-                <label className="mb-1 block text-xs font-semibold text-gray-500 uppercase">
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground uppercase">
                     Keyword
                 </label>
                 <input
@@ -273,7 +273,7 @@ function BrowseFilterForm({
                         }
                     }}
                     placeholder="Search make, model, trim, or VIN…"
-                    className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#1565C0] focus:ring-1 focus:ring-[#1565C0]"
+                    className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-[#1565C0] focus:ring-1 focus:ring-[#1565C0]"
                 />
             </div>
             <div
@@ -370,13 +370,13 @@ function FilterSelect({
 
     return (
         <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-500 uppercase">
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground uppercase">
                 {label}
             </label>
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#1565C0] focus:ring-1 focus:ring-[#1565C0]"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-[#1565C0] focus:ring-1 focus:ring-[#1565C0]"
             >
                 {options.map((opt, i) => (
                     <option key={opt} value={values[i] ?? opt}>

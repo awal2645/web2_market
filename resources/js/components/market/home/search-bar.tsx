@@ -49,7 +49,7 @@ export function HomeSearchBar({ filterOptions = defaultOptions }: Props) {
                     e.preventDefault();
                     search();
                 }}
-                className="-mt-2 mb-10 rounded-2xl border border-gray-200 bg-white p-4 shadow-xl sm:p-5 lg:-mt-6"
+                className="-mt-2 mb-10 rounded-2xl border border-border bg-card p-4 shadow-xl sm:p-5 lg:-mt-6"
             >
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                     {(
@@ -61,13 +61,13 @@ export function HomeSearchBar({ filterOptions = defaultOptions }: Props) {
                         ] as const
                     ).map(([label, options, value, setter]) => (
                         <div key={label}>
-                            <label className="mb-1 block text-xs font-semibold text-gray-500 uppercase">
+                            <label className="mb-1 block text-xs font-semibold text-muted-foreground uppercase">
                                 {label}
                             </label>
                             <select
                                 value={value}
                                 onChange={(e) => setter(e.target.value)}
-                                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-[#1565C0] focus:ring-1 focus:ring-[#1565C0]"
+                                className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-[#1565C0] focus:ring-1 focus:ring-[#1565C0]"
                             >
                                 {options.map((opt) => (
                                     <option key={opt} value={opt}>
@@ -87,8 +87,8 @@ export function HomeSearchBar({ filterOptions = defaultOptions }: Props) {
                         </button>
                     </div>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3">
-                    <span className="text-xs font-medium text-gray-400">
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                    <span className="text-xs font-medium text-muted-foreground">
                         Popular:
                     </span>
                     {['Toyota', 'Honda', 'Ford', 'Chevrolet', 'BMW', 'Mercedes'].map(
@@ -100,7 +100,7 @@ export function HomeSearchBar({ filterOptions = defaultOptions }: Props) {
                                     setMake(makeName);
                                     search({ make: makeName });
                                 }}
-                                className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 transition hover:bg-blue-50 hover:text-[#1565C0]"
+                                className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground transition hover:bg-blue-50 hover:text-[#1565C0] dark:hover:bg-blue-950/40 dark:hover:text-[#90caf9]"
                             >
                                 {makeName}
                             </button>

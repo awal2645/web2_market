@@ -25,7 +25,7 @@ export default function Login({ status, canResetPassword }: Props) {
             <PasskeyVerify />
 
             {status && (
-                <div className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-700">
+                <div className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-700 dark:bg-green-950 dark:text-green-400">
                     {status}
                 </div>
             )}
@@ -41,7 +41,7 @@ export default function Login({ status, canResetPassword }: Props) {
                             <div className="grid gap-2">
                                 <Label
                                     htmlFor="email"
-                                    className="font-medium text-gray-700"
+                                    className="font-medium text-foreground"
                                 >
                                     Email address
                                 </Label>
@@ -54,7 +54,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     tabIndex={1}
                                     autoComplete="email"
                                     placeholder="email@example.com"
-                                    className="border-gray-300 focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
+                                    className="border-input bg-background text-foreground focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
                                 />
                                 <InputError message={errors.email} />
                             </div>
@@ -63,7 +63,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                 <div className="flex items-center">
                                     <Label
                                         htmlFor="password"
-                                        className="font-medium text-gray-700"
+                                        className="font-medium text-foreground"
                                     >
                                         Password
                                     </Label>
@@ -84,7 +84,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="Password"
-                                    className="border-gray-300 focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
+                                    className="border-input bg-background text-foreground focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -94,11 +94,11 @@ export default function Login({ status, canResetPassword }: Props) {
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
-                                    className="border-gray-400 data-[state=checked]:border-[#1565C0] data-[state=checked]:bg-[#1565C0]"
+                                    className="border-input data-[state=checked]:border-[#1565C0] data-[state=checked]:bg-[#1565C0]"
                                 />
                                 <Label
                                     htmlFor="remember"
-                                    className="text-gray-600"
+                                    className="text-muted-foreground"
                                 >
                                     Remember me
                                 </Label>
@@ -116,7 +116,7 @@ export default function Login({ status, canResetPassword }: Props) {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-gray-500">
+                        <div className="text-center text-sm text-muted-foreground">
                             Don&apos;t have an account?{' '}
                             <TextLink
                                 href={register()}

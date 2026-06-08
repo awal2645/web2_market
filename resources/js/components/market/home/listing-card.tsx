@@ -12,9 +12,9 @@ export function HomeListingCard({ listing }: { listing: DisplayListing }) {
     return (
         <a
             href={listing.href}
-            className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+            className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md dark:hover:border-blue-800"
         >
-            <div className="relative aspect-[4/3] overflow-hidden bg-gray-200">
+            <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                 <img
                     src={listing.image}
                     alt={listing.title}
@@ -27,17 +27,17 @@ export function HomeListingCard({ listing }: { listing: DisplayListing }) {
                 <button
                     type="button"
                     onClick={(e) => e.preventDefault()}
-                    className="absolute top-2.5 right-2.5 flex size-8 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm transition hover:text-[#1565C0]"
+                    className="absolute top-2.5 right-2.5 flex size-8 items-center justify-center rounded-full bg-background/90 text-muted-foreground shadow-sm transition hover:text-[#1565C0] dark:hover:text-[#90caf9]"
                     aria-label="Save listing"
                 >
                     <Heart className="size-4" />
                 </button>
             </div>
             <div className="flex flex-1 flex-col p-4">
-                <h3 className="font-bold text-gray-900 group-hover:text-[#1565C0]">
+                <h3 className="font-bold text-foreground group-hover:text-[#1565C0] dark:group-hover:text-[#90caf9]">
                     {listing.title}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                     {formatMileage(listing.mileage)} miles ·{' '}
                     {listing.drivetrain}
                 </p>
@@ -45,7 +45,7 @@ export function HomeListingCard({ listing }: { listing: DisplayListing }) {
                     <p className="text-xl font-extrabold text-[#1565C0]">
                         {formatPrice(listing.asking_price)}
                     </p>
-                    <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-[#1565C0]">
+                    <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-[#1565C0] dark:bg-blue-950/40 dark:text-[#90caf9]">
                         Est. {formatPrice(monthly)}/mo
                     </span>
                 </div>
@@ -59,13 +59,13 @@ export function DummyAdBanner() {
     return (
         <div
             id="finance"
-            className="flex min-h-[320px] flex-col overflow-hidden rounded-xl border-2 border-dashed border-gray-300 bg-gray-100 lg:sticky lg:top-24 lg:min-h-[480px] lg:self-start"
+            className="flex min-h-[320px] flex-col overflow-hidden rounded-xl border-2 border-dashed border-input bg-muted lg:sticky lg:top-24 lg:min-h-[480px] lg:self-start"
         >
-            <div className="flex items-center justify-between border-b border-dashed border-gray-300 bg-gray-200/80 px-4 py-2">
-                <span className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+            <div className="flex items-center justify-between border-b border-dashed border-input bg-muted/80 px-4 py-2">
+                <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
                     Advertisement
                 </span>
-                <span className="text-[10px] text-gray-400">Demo</span>
+                <span className="text-[10px] text-muted-foreground">Demo</span>
             </div>
 
             <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
@@ -74,10 +74,10 @@ export function DummyAdBanner() {
                     alt="Web2Autos"
                     className="mb-4 h-10 w-auto opacity-90"
                 />
-                <p className="text-lg font-bold text-gray-700">
+                <p className="text-lg font-bold text-foreground">
                     Your Ad Here
                 </p>
-                <p className="mt-2 max-w-[200px] text-sm leading-relaxed text-gray-500">
+                <p className="mt-2 max-w-[200px] text-sm leading-relaxed text-muted-foreground">
                     300 × 600 banner slot — dummy placeholder for sponsors &
                     partners
                 </p>
@@ -85,7 +85,7 @@ export function DummyAdBanner() {
                     <p className="text-xs font-semibold text-[#1565C0]">
                         Auto Loans from 4.9% APR*
                     </p>
-                    <p className="mt-1 text-[10px] text-gray-500">
+                    <p className="mt-1 text-[10px] text-muted-foreground">
                         *Sample promo — not a real offer
                     </p>
                 </div>

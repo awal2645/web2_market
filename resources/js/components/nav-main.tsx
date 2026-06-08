@@ -15,9 +15,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel className="text-gray-500">
-                Menu
-            </SidebarGroupLabel>
+            <SidebarGroupLabel>Menu</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {
                     const active = isCurrentUrl(item.href);
@@ -30,14 +28,15 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                 tooltip={{ children: item.title }}
                                 className={cn(
                                     active &&
-                                        'bg-[#1565C0]/10 text-[#1565C0] hover:bg-[#1565C0]/15 hover:text-[#1565C0] data-[active=true]:bg-[#1565C0]/10 data-[active=true]:text-[#1565C0]',
+                                        'bg-[#1565C0]/10 text-[#1565C0] hover:bg-[#1565C0]/15 hover:text-[#1565C0] data-[active=true]:bg-[#1565C0]/10 data-[active=true]:text-[#1565C0] dark:text-[#90caf9] dark:hover:text-[#90caf9] dark:data-[active=true]:text-[#90caf9]',
                                 )}
                             >
                                 <Link href={item.href} prefetch>
                                     {item.icon && (
                                         <item.icon
                                             className={cn(
-                                                active && 'text-[#1565C0]',
+                                                active &&
+                                                    'text-[#1565C0] dark:text-[#90caf9]',
                                             )}
                                         />
                                     )}

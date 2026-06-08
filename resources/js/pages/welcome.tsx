@@ -36,7 +36,7 @@ export default function Welcome({ listings = [], filterOptions }: Props) {
         <>
             <Head title="Web2Autos.com — Buy. Sell. Finance." />
 
-            <div className="min-h-screen bg-white font-sans text-gray-900 antialiased">
+            <div className="min-h-screen bg-background font-sans text-foreground antialiased">
                 <HomeHeader auth={auth} listHref={listHref} />
                 <HomeHero listHref={listHref} />
                 <HomeSearchBar filterOptions={filterOptions} />
@@ -63,7 +63,7 @@ export default function Welcome({ listings = [], filterOptions }: Props) {
                         </p>
                         <a
                             href={listHref}
-                            className="mt-6 inline-block rounded-lg bg-white px-8 py-3.5 text-sm font-bold text-[#1565C0] shadow-lg transition hover:bg-blue-50"
+                            className="mt-6 inline-block rounded-lg bg-white px-8 py-3.5 text-sm font-bold text-[#1565C0] shadow-lg transition hover:bg-blue-50 dark:bg-card dark:hover:bg-muted/50"
                         >
                             Post Your Car — It&apos;s Free
                         </a>

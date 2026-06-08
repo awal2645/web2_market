@@ -41,9 +41,12 @@ type Props = {
 };
 
 const statusStyles: Record<string, string> = {
-    approved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    pending: 'border-amber-200 bg-amber-50 text-amber-700',
-    rejected: 'border-red-200 bg-red-50 text-red-700',
+    approved:
+        'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-400',
+    pending:
+        'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400',
+    rejected:
+        'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400',
 };
 
 const activityIcon = {
@@ -95,13 +98,13 @@ export default function Dashboard({
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p className="text-sm font-medium text-[#1565C0]">
+                        <p className="text-sm font-medium text-[#1565C0] dark:text-[#90caf9]">
                             Web2Autos Market
                         </p>
-                        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
                             Welcome back, {firstName}
                         </h1>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-muted-foreground">
                             Manage your classified listings and track their
                             status.
                         </p>
@@ -109,7 +112,6 @@ export default function Dashboard({
                     <div className="flex shrink-0 gap-2">
                         <Button
                             variant="outline"
-                            className="border-gray-300"
                             asChild
                         >
                             <Link href="/browse">
@@ -130,13 +132,13 @@ export default function Dashboard({
                 </div>
 
                 {!emailVerified && (
-                    <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                        <AlertCircle className="mt-0.5 size-5 shrink-0 text-amber-600" />
+                    <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950">
+                        <AlertCircle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
                         <div className="flex-1">
-                            <p className="text-sm font-semibold text-amber-900">
+                            <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
                                 Verify your email address
                             </p>
-                            <p className="mt-0.5 text-sm text-amber-800">
+                            <p className="mt-0.5 text-sm text-amber-800 dark:text-amber-200">
                                 Confirm your email to fully activate your seller
                                 account.
                             </p>
@@ -154,18 +156,18 @@ export default function Dashboard({
                         const Icon = stat.icon;
                         return (
                             <Link key={stat.label} href={stat.href}>
-                                <Card className="gap-4 border-gray-200 py-5 shadow-sm transition hover:border-[#1565C0]/30 hover:shadow-md">
+                                <Card className="gap-4 py-5 shadow-sm transition hover:border-[#1565C0]/30 hover:shadow-md">
                                     <CardContent className="flex items-start justify-between">
                                         <div>
-                                            <p className="text-sm text-gray-500">
+                                            <p className="text-sm text-muted-foreground">
                                                 {stat.label}
                                             </p>
-                                            <p className="mt-1 text-2xl font-bold text-gray-900">
+                                            <p className="mt-1 text-2xl font-bold text-foreground">
                                                 {stat.value}
                                             </p>
                                         </div>
-                                        <div className="flex size-10 items-center justify-center rounded-lg bg-[#1565C0]/10">
-                                            <Icon className="size-5 text-[#1565C0]" />
+                                        <div className="flex size-10 items-center justify-center rounded-lg bg-[#1565C0]/10 dark:bg-[#1565C0]/20">
+                                            <Icon className="size-5 text-[#1565C0] dark:text-[#90caf9]" />
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -175,8 +177,8 @@ export default function Dashboard({
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
-                    <Card className="gap-0 border-gray-200 py-0 shadow-sm lg:col-span-2">
-                        <CardHeader className="border-b border-gray-100 py-5">
+                    <Card className="gap-0 py-0 shadow-sm lg:col-span-2">
+                        <CardHeader className="border-b border-border py-5">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <CardTitle className="text-base">
@@ -189,7 +191,7 @@ export default function Dashboard({
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-[#1565C0] hover:bg-blue-50"
+                                    className="text-[#1565C0] hover:bg-blue-50 dark:text-[#90caf9] dark:hover:bg-blue-950/40"
                                     asChild
                                 >
                                     <Link href="/listings">
@@ -202,7 +204,7 @@ export default function Dashboard({
                         <CardContent className="p-0">
                             {recentListings.length === 0 ? (
                                 <div className="px-5 py-10 text-center">
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-muted-foreground">
                                         You haven&apos;t listed any vehicles
                                         yet.
                                     </p>
@@ -216,7 +218,7 @@ export default function Dashboard({
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-gray-100">
+                                <div className="divide-y divide-border">
                                     {recentListings.map((listing) => (
                                         <div
                                             key={listing.id}
@@ -228,11 +230,11 @@ export default function Dashboard({
                                                     '/images/demo-vehicles/car-2.jpg'
                                                 }
                                                 alt={listing.title}
-                                                className="size-20 shrink-0 rounded-lg object-cover ring-1 ring-gray-200"
+                                                className="size-20 shrink-0 rounded-lg object-cover ring-1 ring-border"
                                             />
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <h3 className="font-semibold text-gray-900">
+                                                    <h3 className="font-semibold text-foreground">
                                                         {listing.title}
                                                     </h3>
                                                     <Badge
@@ -247,12 +249,12 @@ export default function Dashboard({
                                                         {listing.status_label}
                                                     </Badge>
                                                 </div>
-                                                <p className="mt-0.5 text-lg font-bold text-[#1565C0]">
+                                                <p className="mt-0.5 text-lg font-bold text-[#1565C0] dark:text-[#90caf9]">
                                                     {formatPrice(
                                                         listing.asking_price,
                                                     )}
                                                 </p>
-                                                <p className="mt-1 text-xs text-gray-500">
+                                                <p className="mt-1 text-xs text-muted-foreground">
                                                     {listing.mileage.toLocaleString()}{' '}
                                                     mi · {listing.drivetrain}
                                                 </p>
@@ -260,7 +262,7 @@ export default function Dashboard({
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="shrink-0 border-gray-300"
+                                                className="shrink-0"
                                                 asChild
                                             >
                                                 <Link
@@ -276,8 +278,8 @@ export default function Dashboard({
                         </CardContent>
                     </Card>
 
-                    <Card className="gap-0 border-gray-200 py-0 shadow-sm">
-                        <CardHeader className="border-b border-gray-100 py-5">
+                    <Card className="gap-0 py-0 shadow-sm">
+                        <CardHeader className="border-b border-border py-5">
                             <CardTitle className="text-base">
                                 Listing Activity
                             </CardTitle>
@@ -287,11 +289,11 @@ export default function Dashboard({
                         </CardHeader>
                         <CardContent className="p-0">
                             {recentActivity.length === 0 ? (
-                                <p className="px-5 py-8 text-center text-sm text-gray-500">
+                                <p className="px-5 py-8 text-center text-sm text-muted-foreground">
                                     No activity yet.
                                 </p>
                             ) : (
-                                <ul className="divide-y divide-gray-100">
+                                <ul className="divide-y divide-border">
                                     {recentActivity.map((item) => {
                                         const Icon =
                                             activityIcon[
@@ -302,12 +304,12 @@ export default function Dashboard({
                                                 key={item.id}
                                                 className="flex gap-3 px-5 py-4"
                                             >
-                                                <Icon className="mt-0.5 size-4 shrink-0 text-[#1565C0]" />
+                                                <Icon className="mt-0.5 size-4 shrink-0 text-[#1565C0] dark:text-[#90caf9]" />
                                                 <div className="min-w-0">
-                                                    <p className="text-sm text-gray-700">
+                                                    <p className="text-sm text-foreground">
                                                         {item.message}
                                                     </p>
-                                                    <p className="mt-0.5 text-xs text-gray-400">
+                                                    <p className="mt-0.5 text-xs text-muted-foreground">
                                                         {item.time}
                                                     </p>
                                                 </div>

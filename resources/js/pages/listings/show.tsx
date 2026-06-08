@@ -66,11 +66,11 @@ export default function ShowListing({
         <>
             <Head title={listing.title} />
 
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-background">
                 <HomeHeader auth={auth} listHref={listHref} />
 
                 <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                    <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                    <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <Link href="/" className="hover:text-[#1565C0]">
                             Home
                         </Link>
@@ -79,14 +79,14 @@ export default function ShowListing({
                             Browse
                         </Link>
                         <span>/</span>
-                        <span className="text-gray-900">{listing.title}</span>
+                        <span className="text-foreground font-medium">{listing.title}</span>
                     </div>
 
                     <div className="grid gap-8 lg:grid-cols-3">
                         <div className="space-y-6 lg:col-span-2">
                             {/* Gallery */}
-                            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                                <div className="aspect-[16/10] bg-gray-100">
+                            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                                <div className="aspect-[16/10] bg-muted">
                                     <img
                                         src={images[activeImage]?.url}
                                         alt={listing.title}
@@ -120,7 +120,7 @@ export default function ShowListing({
                             </div>
 
                             {/* Title block mobile */}
-                            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:hidden">
+                            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm lg:hidden">
                                 <TitleBlock
                                     listing={listing}
                                     monthly={monthly}
@@ -131,33 +131,33 @@ export default function ShowListing({
 
                             {/* Seller notes */}
                             {listing.seller_notes && (
-                                <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                                    <h2 className="text-lg font-semibold text-gray-900">
+                                <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                                    <h2 className="text-lg font-semibold text-foreground">
                                         Seller Description
                                     </h2>
-                                    <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+                                    <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
                                         {listing.seller_notes}
                                     </p>
                                 </section>
                             )}
 
                             {/* Quick specs */}
-                            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                                <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                            <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                                <h2 className="mb-4 text-lg font-semibold text-foreground">
                                     Key Specs
                                 </h2>
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     {specs.map(({ icon: Icon, label, value }) => (
                                         <div
                                             key={label}
-                                            className="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3"
+                                            className="flex items-center gap-3 rounded-xl bg-muted/50 px-4 py-3"
                                         >
                                             <Icon className="size-5 shrink-0 text-[#1565C0]" />
                                             <div>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-muted-foreground">
                                                     {label}
                                                 </p>
-                                                <p className="text-sm font-semibold text-gray-900">
+                                                <p className="text-sm font-semibold text-foreground">
                                                     {value}
                                                 </p>
                                             </div>
@@ -167,8 +167,8 @@ export default function ShowListing({
                             </section>
 
                             {/* Full details */}
-                            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                                <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                            <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                                <h2 className="mb-4 text-lg font-semibold text-foreground">
                                     Full Vehicle Details
                                 </h2>
                                 <dl className="grid gap-4 sm:grid-cols-2">
@@ -193,7 +193,7 @@ export default function ShowListing({
                             {/* Similar */}
                             {similarListings.length > 0 && (
                                 <section>
-                                    <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                                    <h2 className="mb-4 text-lg font-semibold text-foreground">
                                         Similar Listings
                                     </h2>
                                     <div className="grid gap-4 sm:grid-cols-2">
@@ -212,7 +212,7 @@ export default function ShowListing({
 
                         {/* Sidebar */}
                         <div className="space-y-6">
-                            <div className="hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:block lg:sticky lg:top-24">
+                            <div className="hidden rounded-2xl border border-border bg-card p-6 shadow-sm lg:block lg:sticky lg:top-24">
                                 <TitleBlock
                                     listing={listing}
                                     monthly={monthly}
@@ -221,8 +221,8 @@ export default function ShowListing({
                                 />
                             </div>
 
-                            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-[22rem]">
-                                <h2 className="text-lg font-semibold text-gray-900">
+                            <section className="rounded-2xl border border-border bg-card p-6 shadow-sm lg:sticky lg:top-[22rem]">
+                                <h2 className="text-lg font-semibold text-foreground">
                                     Contact Seller
                                 </h2>
                                 <dl className="mt-4 space-y-3 text-sm">
@@ -242,7 +242,7 @@ export default function ShowListing({
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        className="w-full border-gray-300"
+                                        className="w-full"
                                         asChild
                                     >
                                         <a href={`tel:${listing.contact_phone}`}>
@@ -252,7 +252,7 @@ export default function ShowListing({
                                     </Button>
                                 </div>
                                 {isOwner && (
-                                    <p className="mt-4 text-center text-xs text-gray-500">
+                                    <p className="mt-4 text-center text-xs text-muted-foreground">
                                         This is your listing.{' '}
                                         <Link
                                             href="/listings"
@@ -287,11 +287,11 @@ function TitleBlock({
     return (
         <>
             <div className="flex flex-wrap items-start justify-between gap-2">
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-foreground">
                     {listing.title}
                 </h1>
                 {!isOwner && listing.status === 'approved' && (
-                    <Badge className="border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                    <Badge className="border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-400 dark:hover:bg-emerald-950">
                         Available
                     </Badge>
                 )}
@@ -299,15 +299,15 @@ function TitleBlock({
                     <Badge variant="outline">{listing.status_label}</Badge>
                 )}
             </div>
-            <p className="mt-2 text-3xl font-extrabold text-[#1565C0]">
+            <p className="mt-2 text-3xl font-extrabold text-[#1565C0] dark:text-[#90caf9]">
                 {formatPrice(listing.asking_price)}
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-muted-foreground">
                 Est. {formatPrice(monthly)}/mo · {formatMileage(listing.mileage)}{' '}
                 mi · {listing.drivetrain}
             </p>
             {listedDate && (
-                <p className="mt-2 text-xs text-gray-400">
+                <p className="mt-2 text-xs text-muted-foreground">
                     Listed on {listedDate}
                 </p>
             )}
@@ -324,10 +324,10 @@ function Detail({
 }) {
     return (
         <div>
-            <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 {label}
             </dt>
-            <dd className="mt-0.5 text-sm font-semibold text-gray-900">
+            <dd className="mt-0.5 text-sm font-semibold text-foreground">
                 {value}
             </dd>
         </div>

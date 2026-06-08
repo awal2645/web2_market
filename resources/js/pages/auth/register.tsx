@@ -29,7 +29,7 @@ export default function Register({ passwordRules }: Props) {
                             <div className="grid gap-2">
                                 <Label
                                     htmlFor="name"
-                                    className="font-medium text-gray-700"
+                                    className="font-medium text-foreground"
                                 >
                                     Name
                                 </Label>
@@ -42,7 +42,7 @@ export default function Register({ passwordRules }: Props) {
                                     autoComplete="name"
                                     name="name"
                                     placeholder="Full name"
-                                    className="border-gray-300 focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
+                                    className="border-input bg-background text-foreground focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
                                 />
                                 <InputError
                                     message={errors.name}
@@ -53,7 +53,7 @@ export default function Register({ passwordRules }: Props) {
                             <div className="grid gap-2">
                                 <Label
                                     htmlFor="email"
-                                    className="font-medium text-gray-700"
+                                    className="font-medium text-foreground"
                                 >
                                     Email address
                                 </Label>
@@ -65,7 +65,7 @@ export default function Register({ passwordRules }: Props) {
                                     autoComplete="email"
                                     name="email"
                                     placeholder="email@example.com"
-                                    className="border-gray-300 focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
+                                    className="border-input bg-background text-foreground focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
                                 />
                                 <InputError message={errors.email} />
                             </div>
@@ -73,7 +73,7 @@ export default function Register({ passwordRules }: Props) {
                             <div className="grid gap-2">
                                 <Label
                                     htmlFor="password"
-                                    className="font-medium text-gray-700"
+                                    className="font-medium text-foreground"
                                 >
                                     Password
                                 </Label>
@@ -85,7 +85,7 @@ export default function Register({ passwordRules }: Props) {
                                     name="password"
                                     placeholder="Password"
                                     passwordrules={passwordRules}
-                                    className="border-gray-300 focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
+                                    className="border-input bg-background text-foreground focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -93,7 +93,7 @@ export default function Register({ passwordRules }: Props) {
                             <div className="grid gap-2">
                                 <Label
                                     htmlFor="password_confirmation"
-                                    className="font-medium text-gray-700"
+                                    className="font-medium text-foreground"
                                 >
                                     Confirm password
                                 </Label>
@@ -105,7 +105,7 @@ export default function Register({ passwordRules }: Props) {
                                     name="password_confirmation"
                                     placeholder="Confirm password"
                                     passwordrules={passwordRules}
-                                    className="border-gray-300 focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
+                                    className="border-input bg-background text-foreground focus-visible:border-[#1565C0] focus-visible:ring-[#1565C0]/30"
                                 />
                                 <InputError
                                     message={errors.password_confirmation}
@@ -124,7 +124,7 @@ export default function Register({ passwordRules }: Props) {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-gray-500">
+                        <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
                             <TextLink
                                 href={login()}
