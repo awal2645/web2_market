@@ -128,7 +128,8 @@ return [
     */
 
     'migrations' => [
-        'table' => 'migrations',
+        // Separate from any non-Laravel `migrations` table in the shared web2autos DB.
+        'table' => env('DB_MIGRATIONS_TABLE', 'laravel_migrations'),
         'update_date_on_publish' => true,
     ],
 
