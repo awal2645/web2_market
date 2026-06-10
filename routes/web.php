@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminListingController;
 use App\Http\Controllers\AuthSyncController;
 use App\Http\Controllers\BrowseController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OnboardingController;
@@ -18,6 +19,7 @@ Route::get('market/{listing}', [VehicleListingController::class, 'show'])->name(
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::get('market/{listing}/message', [ConversationController::class, 'composeFromListing'])->name('listings.message');
 
     Route::prefix('onboarding')->name('onboarding.')->group(function () {
         Route::get('list-vehicle', [OnboardingController::class, 'listVehiclePrompt'])->name('list-vehicle');
@@ -32,6 +34,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('{listing}/edit', [VehicleListingController::class, 'edit'])->name('edit');
         Route::put('{listing}', [VehicleListingController::class, 'update'])->name('update');
         Route::delete('{listing}', [VehicleListingController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/', [ConversationController::class, 'index'])->name('index');
+        Route::get('unread-count', [ConversationController::class, 'unreadCount'])->name('unread-count');
+        Route::post('/', [ConversationController::class, 'store'])->name('store');
+        Route::get('{conversation}', [ConversationController::class, 'show'])->name('show');
+        Route::get('{conversation}/poll', [ConversationController::class, 'poll'])->name('poll');
+        Route::post('{conversation}/messages', [ConversationController::class, 'sendMessage'])->name('messages.store');
+        Route::patch('{conversation}/messages/{message}', [ConversationController::class, 'updateMessage'])->name('messages.update');
+        Route::delete('{conversation}', [ConversationController::class, 'destroy'])->name('destroy');
+        Route::delete('{conversation}/messages/{message}', [ConversationController::class, 'destroyMessage'])->name('messages.destroy');
     });
 
     Route::middleware(EnsureUserIsAdmin::class)->prefix('admin')->name('admin.')->group(function () {

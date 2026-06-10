@@ -6,6 +6,7 @@ use App\Enums\ListingStatus;
 use App\Http\Requests\StoreVehicleListingRequest;
 use App\Http\Requests\UpdateVehicleListingRequest;
 use App\Http\Resources\VehicleListingResource;
+use App\Models\Conversation;
 use App\Models\VehicleListing;
 use App\Models\VehicleListingImage;
 use App\Services\MarketSettings;
@@ -267,6 +268,10 @@ class VehicleListingController extends Controller
             'listing' => VehicleListingResource::make($listing),
             'similarListings' => $similarListings,
             'isOwner' => $user && $listing->user_id === $user->id,
+            'messageConversation' => $user && $listing->user_id !== $user->id
+                ? Conversation::summaryForListing($user, $listing)
+                : null,
+            'messageUrl' => route('listings.message', $listing, absolute: false),
         ]);
     }
 

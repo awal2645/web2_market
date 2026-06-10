@@ -17,6 +17,7 @@ class VehicleListingResource
         return [
             'id' => $listing->id,
             'title' => $listing->title(),
+            'seller_id' => $listing->user_id,
             'year' => $listing->year,
             'make' => $listing->make,
             'model' => $listing->model,

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CarFront, LayoutGrid, List, ShieldCheck } from 'lucide-react';
+import { CarFront, LayoutGrid, List, MessageSquare, ShieldCheck } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -9,7 +9,7 @@ import {
     SidebarFooter,
     SidebarHeader,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard, home } from '@/routes';
 import type { Auth, NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -25,6 +25,11 @@ export function AppSidebar() {
             title: 'My Listings',
             href: '/listings',
             icon: List,
+        },
+        {
+            title: 'Messages',
+            href: '/messages',
+            icon: MessageSquare,
         },
         {
             title: 'Sell Vehicle',
@@ -45,7 +50,7 @@ export function AppSidebar() {
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader className="px-3 py-3">
                 <Link
-                    href={dashboard()}
+                    href={home()}
                     prefetch
                     className="flex w-full items-center overflow-visible transition hover:opacity-90"
                 >

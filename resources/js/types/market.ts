@@ -28,6 +28,7 @@ export type VehicleListing = {
     status_label: string;
     images: VehicleListingImage[];
     created_at: string | null;
+    seller_id?: string;
     seller_name?: string;
 };
 

@@ -135,4 +135,16 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return $this->hasMany(VehicleListing::class);
     }
+
+    public function unreadMessagesCount(): int
+    {
+        return Message::query()
+            ->where('sender_id', '!=', $this->id)
+            ->whereNull('read_at')
+            ->whereHas('conversation', function ($query): void {
+                $query->where('participant_one_id', $this->id)
+                    ->orWhere('participant_two_id', $this->id);
+            })
+            ->count();
+    }
 }

@@ -6,6 +6,7 @@ import {
     Gauge,
     Mail,
     MapPin,
+    MessageSquare,
     Phone,
     Settings2,
 } from 'lucide-react';
@@ -29,12 +30,21 @@ type Props = {
     listing: VehicleListing;
     similarListings: VehicleListing[];
     isOwner: boolean;
+    messageConversation?: {
+        id: string;
+        url: string;
+        last_message: string | null;
+        last_message_at: string | null;
+    } | null;
+    messageUrl?: string;
 };
 
 export default function ShowListing({
     listing,
     similarListings,
     isOwner,
+    messageConversation,
+    messageUrl,
 }: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const listHref = auth.user ? '/listings/create' : register();
@@ -230,9 +240,51 @@ export default function ShowListing({
                                     <Detail label="Email" value={listing.contact_email} />
                                     <Detail label="Phone" value={listing.contact_phone} />
                                 </dl>
+
+                                {messageConversation && (
+                                    <div className="mt-6 rounded-xl border border-[#1565C0]/20 bg-blue-50/60 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                                        <p className="text-xs font-medium tracking-wide text-[#1565C0] uppercase dark:text-[#90caf9]">
+                                            Your conversation
+                                        </p>
+                                        <p className="mt-2 line-clamp-2 text-sm text-foreground">
+                                            {messageConversation.last_message ??
+                                                'No messages yet'}
+                                        </p>
+                                        <Button
+                                            className="mt-3 w-full bg-[#1565C0] hover:bg-[#0D47A1]"
+                                            asChild
+                                        >
+                                            <Link href={messageConversation.url}>
+                                                <MessageSquare className="size-4" />
+                                                View Messages
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                )}
+
                                 <div className="mt-6 space-y-2">
+                                    {!isOwner && listing.seller_id && messageUrl && (
+                                        <Button
+                                            className="w-full bg-[#1565C0] hover:bg-[#0D47A1]"
+                                            asChild
+                                        >
+                                            <Link href={messageUrl}>
+                                                <MessageSquare className="size-4" />
+                                                {messageConversation
+                                                    ? 'Continue Message'
+                                                    : 'Message Seller'}
+                                            </Link>
+                                        </Button>
+                                    )}
                                     <Button
                                         className="w-full bg-[#1565C0] hover:bg-[#0D47A1]"
+                                        variant={
+                                            !isOwner &&
+                                            listing.seller_id &&
+                                            messageUrl
+                                                ? 'outline'
+                                                : 'default'
+                                        }
                                         asChild
                                     >
                                         <a href={`mailto:${listing.contact_email}?subject=${encodeURIComponent(`Interested in ${listing.title}`)}`}>

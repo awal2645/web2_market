@@ -7,6 +7,7 @@ import {
     Search,
     User,
 } from 'lucide-react';
+import { MessageNavIcon } from '@/components/message-nav-icon';
 import { heroStats } from '@/data/homepage';
 import { login } from '@/routes';
 import { dashboard } from '@/routes';
@@ -61,6 +62,8 @@ export function HomeHeader({ auth, listHref }: Props) {
                         <Heart className="size-4" />
                         Saved
                     </button>
+
+                    <MessageNavIcon />
 
                     {auth.user ? (
                         <Link
