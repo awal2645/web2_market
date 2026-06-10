@@ -59,7 +59,8 @@ class SyncMigrationHistory extends Command
         );
 
         $this->info("Recorded {$missing->count()} migration(s) in `{$table}` (batch {$batch}).");
-        $this->line('Run `php artisan migrate` to apply any newer migrations only.');
+        $this->warn('History was synced without running SQL — existing tables may still be missing columns.');
+        $this->line('Run `php artisan migrate` next so ensure_* migrations can align the shared schema.');
 
         return self::SUCCESS;
     }
