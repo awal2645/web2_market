@@ -3,6 +3,7 @@ import { ImagePlus, Loader2, Mic, Send, Square, X } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { MessageReplyBar } from '@/components/messages/message-reply-bar';
+import { ImagePreviewLightbox } from '@/components/messages/image-preview-lightbox';
 import { VoiceWaveform } from '@/components/messages/voice-waveform';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ export function MessageComposer({
     const [compressing, setCompressing] = useState(false);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const {
         isRecording,
@@ -195,27 +197,57 @@ export function MessageComposer({
             )}
 
             {imagePreview && (
-                <div className="relative inline-block">
-                    <img
+                <div className="rounded-xl border border-border bg-muted/30 p-3">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-foreground">
+                            Image preview
+                        </p>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={clearImage}
+                            disabled={compressing}
+                        >
+                            Remove
+                        </Button>
+                    </div>
+                    <div className="relative inline-block max-w-full">
+                        <button
+                            type="button"
+                            onClick={() => setImagePreviewOpen(true)}
+                            className="block overflow-hidden rounded-lg border border-border"
+                            aria-label="View full image preview"
+                        >
+                            <img
+                                src={imagePreview}
+                                alt="Attachment preview"
+                                className="max-h-48 max-w-full cursor-zoom-in object-contain sm:max-h-56"
+                            />
+                        </button>
+                        {compressing && (
+                            <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/70">
+                                <Loader2 className="size-5 animate-spin text-[#1565C0]" />
+                            </div>
+                        )}
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            className="absolute -top-2 -right-2 size-6 rounded-full"
+                            onClick={clearImage}
+                            disabled={compressing}
+                        >
+                            <X className="size-3" />
+                        </Button>
+                    </div>
+                    <ImagePreviewLightbox
                         src={imagePreview}
                         alt="Attachment preview"
-                        className="max-h-32 rounded-lg border border-border object-cover"
+                        open={imagePreviewOpen}
+                        onOpenChange={setImagePreviewOpen}
                     />
-                    {compressing && (
-                        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/70">
-                            <Loader2 className="size-5 animate-spin text-[#1565C0]" />
-                        </div>
-                    )}
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="absolute -top-2 -right-2 size-6 rounded-full"
-                        onClick={clearImage}
-                        disabled={compressing}
-                    >
-                        <X className="size-3" />
-                    </Button>
                 </div>
             )}
 

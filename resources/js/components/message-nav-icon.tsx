@@ -3,10 +3,12 @@ import { MessageSquare } from 'lucide-react';
 import { useUnreadMessageCount } from '@/hooks/use-unread-message-count';
 import { cn } from '@/lib/utils';
 import type { Auth } from '@/types';
+import type { BroadcastingConfig } from '@/lib/echo';
 
 type SharedProps = {
     auth: Auth;
     unreadMessagesCount?: number;
+    broadcasting?: BroadcastingConfig;
 };
 
 type Props = {
@@ -20,8 +22,13 @@ export function MessageNavIcon({
     iconClassName,
     variant = 'default',
 }: Props) {
-    const { auth, unreadMessagesCount = 0 } = usePage<SharedProps>().props;
-    const count = useUnreadMessageCount(unreadMessagesCount, !!auth.user);
+    const { auth, unreadMessagesCount = 0, broadcasting } =
+        usePage<SharedProps>().props;
+    const count = useUnreadMessageCount(
+        unreadMessagesCount,
+        !!auth.user,
+        broadcasting,
+    );
     const displayCount = count > 99 ? '99+' : count.toString();
 
     if (!auth.user) {

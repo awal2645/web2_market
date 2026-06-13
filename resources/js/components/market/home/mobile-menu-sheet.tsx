@@ -6,6 +6,7 @@ import {
     LayoutGrid,
     MessageSquare,
     Plus,
+    Scale,
     Search,
     User,
 } from 'lucide-react';
@@ -28,8 +29,9 @@ type Props = {
 
 const links = [
     { label: 'Browse cars', href: '/browse', icon: Search },
+    { label: 'Compare vehicles', href: '/compare', icon: Scale },
     { label: 'Auto loans', href: '/#finance', icon: Landmark },
-    { label: 'Saved listings', href: '/browse', icon: Heart },
+    { label: 'Saved listings', href: '/saved-listings', icon: Heart, auth: true },
     { label: 'My listings', href: '/listings', icon: Car, auth: true },
     { label: 'Messages', href: '/messages', icon: MessageSquare, auth: true },
     { label: 'Post your car', href: null, icon: Plus, highlight: true },

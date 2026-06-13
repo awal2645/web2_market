@@ -97,6 +97,11 @@ export function SellerSidebarCard({
                         <h1 className="text-lg font-bold leading-tight text-foreground">
                             {seller.name}
                         </h1>
+                        {seller.is_dealer && (
+                            <span className="mt-1 inline-flex rounded-full bg-[#1565C0]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1565C0]">
+                                Verified Dealer
+                            </span>
+                        )}
                         {joined && (
                             <p className="mt-1 text-sm text-muted-foreground">
                                 Member since {joined}

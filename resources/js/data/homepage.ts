@@ -146,6 +146,8 @@ export type DisplayListing = {
     asking_price: number;
     image: string;
     href: string;
+    is_saved?: boolean;
+    location_label?: string | null;
 };
 
 type ApiListing = {
@@ -156,6 +158,8 @@ type ApiListing = {
     mileage: number;
     drivetrain: string;
     asking_price: number;
+    is_saved?: boolean;
+    location_label?: string | null;
     images?: { url: string }[];
 };
 
@@ -174,6 +178,8 @@ export function vehicleListingToDisplay(listing: ApiListing): DisplayListing {
         mileage: listing.mileage,
         drivetrain: listing.drivetrain,
         asking_price: listing.asking_price,
+        is_saved: listing.is_saved,
+        location_label: listing.location_label,
         image:
             listing.images?.[0]?.url ?? '/images/demo-vehicles/car-2.jpg',
         href: `/market/${listing.slug}`,

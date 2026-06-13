@@ -1,2 +1,15 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /forgot-password
+Disallow: /listings
+Disallow: /login
+Disallow: /messages
+Disallow: /onboarding
+Disallow: /register
+Disallow: /reset-password
+Disallow: /settings
+Disallow: /user/
+
+Sitemap: /sitemap.xml

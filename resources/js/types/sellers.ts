@@ -1,6 +1,8 @@
 export type SellerProfile = {
     id: string;
+    slug: string;
     name: string;
+    is_dealer: boolean;
     avatar: string | null;
     member_since: string | null;
     average_rating: number | null;

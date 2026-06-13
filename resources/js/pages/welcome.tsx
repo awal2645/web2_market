@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { FeaturedSection } from '@/components/market/home/featured-section';
 import {
     HomeHero,
@@ -9,9 +9,15 @@ import {
     CategoriesSection,
     HowItWorksSection,
 } from '@/components/market/home/sections';
+import { SeoHead } from '@/components/seo/seo-head';
 import { resolveFeaturedListings } from '@/data/homepage';
+import {
+    buildOrganizationSchema,
+    buildWebsiteSchema,
+} from '@/lib/seo-schema';
 import { register } from '@/routes';
 import type { Auth } from '@/types';
+import type { SeoDefaults } from '@/types/seo';
 import type { VehicleListing } from '@/types/market';
 
 type Props = {
@@ -25,14 +31,26 @@ type Props = {
 };
 
 export default function Welcome({ listings = [], filterOptions }: Props) {
-    const { auth } = usePage<{ auth: Auth }>().props;
+    const { auth, seo } = usePage<{ auth: Auth; seo: SeoDefaults }>().props;
     const listHref = auth.user ? '/listings/create' : register();
     const displayListings = resolveFeaturedListings(listings);
     const usingSavedListings = listings.length > 0;
 
     return (
         <>
-            <Head title="Web2Autos.com — Buy. Sell. Finance." />
+            <SeoHead
+                title="Web2Autos.com — Buy. Sell. Finance."
+                description={seo.defaultDescription}
+                path="/"
+                jsonLd={[
+                    buildWebsiteSchema(
+                        seo.appUrl,
+                        seo.siteName,
+                        seo.defaultDescription,
+                    ),
+                    buildOrganizationSchema(seo.appUrl, seo.siteName),
+                ]}
+            />
 
             <MarketShell auth={auth} listHref={listHref}>
                 <HomeHero listHref={listHref} />

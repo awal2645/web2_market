@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreVehicleListingRequest extends FormRequest
 {
@@ -36,6 +35,10 @@ class StoreVehicleListingRequest extends FormRequest
             'transmission' => ['required', 'string', 'max:50'],
             'fuel_type' => ['required', 'string', 'max:50'],
             'drivetrain' => ['required', 'string', 'max:50'],
+            'body_type' => ['required', 'string', 'max:50'],
+            'city' => ['required', 'string', 'max:100'],
+            'state' => ['required', 'string', 'size:2', 'alpha'],
+            'zip_code' => ['required', 'string', 'max:10'],
             'asking_price' => ['required', 'integer', 'min:1', 'max:99999999'],
             'seller_notes' => ['nullable', 'string', 'max:5000'],
             'contact_name' => ['required', 'string', 'max:255'],

@@ -1,4 +1,4 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     Car,
     CheckCircle2,
@@ -16,6 +16,7 @@ import {
 } from '@/components/sellers/seller-sidebar-card';
 import { MarketShell } from '@/components/market/home/market-shell';
 import { HomeListingCard } from '@/components/market/home/listing-card';
+import { SeoHead } from '@/components/seo/seo-head';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -23,8 +24,10 @@ import {
     type Paginated,
 } from '@/components/ui/pagination-links';
 import { vehicleListingToDisplay } from '@/data/homepage';
+import { buildSellerSchema } from '@/lib/seo-schema';
 import { register } from '@/routes';
 import type { Auth } from '@/types';
+import type { SeoDefaults } from '@/types/seo';
 import type { VehicleListing } from '@/types/market';
 import type { SellerProfile, SellerReview } from '@/types/sellers';
 
@@ -50,7 +53,7 @@ export default function SellerProfilePage({
     canReview,
     hasReviewed,
 }: Props) {
-    const { auth } = usePage<{ auth: Auth }>().props;
+    const { auth, seo } = usePage<{ auth: Auth; seo: SeoDefaults }>().props;
     const listHref = auth.user ? '/listings/create' : register();
     const messageHref = messageListingSlug
         ? `/market/${messageListingSlug}/message`
@@ -77,9 +80,21 @@ export default function SellerProfilePage({
         }, 100);
     };
 
+    const sellerDescription =
+        seller.review_count > 0 && seller.average_rating != null
+            ? `${seller.name} on Web2Autos — ${seller.active_listing_count} active listing${seller.active_listing_count !== 1 ? 's' : ''}, rated ${seller.average_rating}★ from ${seller.review_count} review${seller.review_count !== 1 ? 's' : ''}.`
+            : `${seller.name} on Web2Autos — ${seller.active_listing_count} active vehicle listing${seller.active_listing_count !== 1 ? 's' : ''}.`;
+
     return (
         <>
-            <Head title={`${seller.name} — Seller`} />
+            <SeoHead
+                title={`${seller.name} — Seller`}
+                description={sellerDescription}
+                path={`/sellers/${seller.slug}`}
+                image={seller.avatar}
+                type="profile"
+                jsonLd={buildSellerSchema(seo.appUrl, seller)}
+            />
 
             <MarketShell auth={auth} listHref={listHref} className="bg-muted/30">
                 <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">

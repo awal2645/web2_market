@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ListingStatus;
 use App\Http\Resources\VehicleListingResource;
 use App\Models\VehicleListing;
 use Inertia\Inertia;
@@ -13,7 +12,7 @@ class HomeController extends Controller
     public function __invoke(): Response
     {
         $listings = VehicleListing::query()
-            ->where('status', ListingStatus::Approved)
+            ->activeMarketplace()
             ->with('images')
             ->latest()
             ->limit(12)

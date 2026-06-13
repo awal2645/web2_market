@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import {
     Camera,
     Car,
@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -518,6 +519,10 @@ export function ListingForm({
         transmission: listing?.transmission ?? '',
         fuel_type: listing?.fuel_type ?? '',
         drivetrain: listing?.drivetrain ?? '',
+        body_type: listing?.body_type ?? '',
+        city: listing?.city ?? '',
+        state: listing?.state ?? '',
+        zip_code: listing?.zip_code ?? '',
         asking_price: listing ? String(listing.asking_price) : '',
         seller_notes: listing?.seller_notes ?? '',
         contact_name: listing?.contact_name ?? defaults.contact_name,
@@ -527,6 +532,64 @@ export function ListingForm({
         remove_images: [] as number[],
         ...(isEditing ? { _method: 'put' as const } : {}),
     });
+
+    const [decodingVin, setDecodingVin] = useState(false);
+
+    const decodeVin = async () => {
+        const vin = sanitizeVin(data.vin);
+
+        if (vin.length !== 17) {
+            toast.error('Enter a valid 17-character VIN first.');
+            return;
+        }
+
+        setDecodingVin(true);
+
+        try {
+            const response = await fetch(`/vin-decode/${vin}`, {
+                headers: { Accept: 'application/json' },
+            });
+            const payload = await response.json();
+
+            if (!response.ok) {
+                toast.error(payload.message ?? 'Could not decode VIN.');
+                return;
+            }
+
+            const decoded = payload.data as Record<string, string | number | null>;
+
+            if (decoded.year) {
+                setData('year', String(decoded.year));
+            }
+            if (decoded.make) {
+                setData('make', String(decoded.make));
+            }
+            if (decoded.model) {
+                setData('model', String(decoded.model));
+            }
+            if (decoded.trim) {
+                setData('trim', String(decoded.trim));
+            }
+            if (decoded.body_type) {
+                setData('body_type', String(decoded.body_type));
+            }
+            if (decoded.fuel_type) {
+                setData('fuel_type', String(decoded.fuel_type));
+            }
+            if (decoded.transmission) {
+                setData('transmission', String(decoded.transmission));
+            }
+            if (decoded.drivetrain) {
+                setData('drivetrain', String(decoded.drivetrain));
+            }
+
+            toast.success('VIN decoded — review the auto-filled fields.');
+        } catch {
+            toast.error('Could not decode VIN.');
+        } finally {
+            setDecodingVin(false);
+        }
+    };
 
     const listingTitle =
         data.year && data.make && data.model
@@ -604,9 +667,17 @@ export function ListingForm({
             'transmission',
             'fuel_type',
             'drivetrain',
+            'body_type',
         ],
         3: ['images'],
-        4: ['contact_name', 'contact_email', 'contact_phone'],
+        4: [
+            'contact_name',
+            'contact_email',
+            'contact_phone',
+            'city',
+            'state',
+            'zip_code',
+        ],
     };
 
     const canContinue = (forStep = step) => {
@@ -783,19 +854,17 @@ export function ListingForm({
         keptExistingImages[0]?.url ??
         listing?.images[0]?.url;
 
+    const pageTitle = isSuccess
+        ? isEditing
+            ? 'Listing Updated'
+            : 'Listing Submitted'
+        : isEditing
+          ? 'Edit Listing'
+          : 'List Your Vehicle';
+
     return (
         <>
-            <Head
-                title={
-                    isSuccess
-                        ? isEditing
-                            ? 'Listing Updated'
-                            : 'Listing Submitted'
-                        : isEditing
-                          ? 'Edit Listing'
-                          : 'List Your Vehicle'
-                }
-            />
+            <PrivatePageHead title={pageTitle} />
 
             <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 pb-24 md:pb-8">
                 {/* Header */}
@@ -1067,6 +1136,18 @@ export function ListingForm({
                                         getVinValidationMessage(data.vin)
                                     }
                                 />
+                                <div className="sm:col-span-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={decodingVin}
+                                        onClick={decodeVin}
+                                    >
+                                        {decodingVin
+                                            ? 'Decoding VIN...'
+                                            : 'Decode VIN (NHTSA)'}
+                                    </Button>
+                                </div>
                                 <SelectField
                                     id="title_status"
                                     label="Title Status"
@@ -1117,6 +1198,15 @@ export function ListingForm({
                                     value={data.drivetrain}
                                     onChange={(v) => setData('drivetrain', v)}
                                     error={errors.drivetrain}
+                                />
+                                <SelectField
+                                    id="body_type"
+                                    label="Body Type"
+                                    name="body_type"
+                                    options={options.bodyTypes}
+                                    value={data.body_type}
+                                    onChange={(v) => setData('body_type', v)}
+                                    error={errors.body_type}
                                 />
                                 <TextField
                                     id="exterior_color"
@@ -1381,6 +1471,49 @@ export function ListingForm({
                                             error={errors.contact_phone}
                                         />
                                     </div>
+                                </div>
+                            </section>
+
+                            <section className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
+                                <h2 className="font-semibold text-foreground">
+                                    Vehicle Location
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    Helps buyers find vehicles near them.
+                                </p>
+                                <div className="grid gap-4 sm:grid-cols-3">
+                                    <TextField
+                                        id="city"
+                                        label="City"
+                                        name="city"
+                                        value={data.city}
+                                        onChange={(v) => setData('city', v)}
+                                        error={errors.city}
+                                    />
+                                    <TextField
+                                        id="state"
+                                        label="State"
+                                        name="state"
+                                        value={data.state}
+                                        onChange={(v) =>
+                                            setData(
+                                                'state',
+                                                v.toUpperCase().slice(0, 2),
+                                            )
+                                        }
+                                        placeholder="CA"
+                                        error={errors.state}
+                                    />
+                                    <TextField
+                                        id="zip_code"
+                                        label="ZIP Code"
+                                        name="zip_code"
+                                        value={data.zip_code}
+                                        onChange={(v) =>
+                                            setData('zip_code', v)
+                                        }
+                                        error={errors.zip_code}
+                                    />
                                 </div>
                             </section>
 

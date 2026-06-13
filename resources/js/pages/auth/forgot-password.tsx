@@ -1,8 +1,8 @@
-// Components
-import { Form, Head } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,7 @@ import { email } from '@/routes/password';
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
         <>
-            <Head title="Forgot password" />
+            <PrivatePageHead title="Forgot password" />
 
             {status && (
                 <div className="mb-4 text-center text-sm font-medium text-green-600">

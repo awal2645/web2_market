@@ -1,7 +1,8 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     Calendar,
     Car,
+    CircleCheck,
     Fuel,
     Gauge,
     MapPin,
@@ -11,15 +12,25 @@ import { useState } from 'react';
 import { SellerContactCard } from '@/components/sellers/seller-contact-card';
 import { MarketShell } from '@/components/market/home/market-shell';
 import { HomeListingCard } from '@/components/market/home/listing-card';
+import { CompareListingButton } from '@/components/market/compare-listing-button';
+import { ListingReportDialog } from '@/components/market/listing-report-dialog';
+import { SaveListingButton } from '@/components/market/save-listing-button';
+import { SeoHead } from '@/components/seo/seo-head';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     estimateMonthlyPayment,
     formatMileage,
     formatPrice,
     vehicleListingToDisplay,
 } from '@/data/homepage';
+import {
+    buildListingBreadcrumbSchema,
+    buildVehicleListingSchema,
+} from '@/lib/seo-schema';
 import { register } from '@/routes';
 import type { Auth } from '@/types';
+import type { SeoDefaults } from '@/types/seo';
 import type { VehicleListing } from '@/types/market';
 import type { SellerRatingStats } from '@/types/sellers';
 
@@ -36,6 +47,7 @@ type Props = {
     messageUrl?: string;
     sellerProfileUrl?: string | null;
     sellerRating?: SellerRatingStats | null;
+    canMarkSold?: boolean;
 };
 
 export default function ShowListing({
@@ -46,8 +58,9 @@ export default function ShowListing({
     messageUrl,
     sellerProfileUrl,
     sellerRating,
+    canMarkSold = false,
 }: Props) {
-    const { auth } = usePage<{ auth: Auth }>().props;
+    const { auth, seo } = usePage<{ auth: Auth; seo: SeoDefaults }>().props;
     const listHref = auth.user ? '/listings/create' : register();
     const [activeImage, setActiveImage] = useState(0);
 
@@ -69,13 +82,29 @@ export default function ShowListing({
         { icon: Settings2, label: 'Transmission', value: listing.transmission },
         { icon: Fuel, label: 'Fuel Type', value: listing.fuel_type },
         { icon: Car, label: 'Drivetrain', value: listing.drivetrain },
-        { icon: MapPin, label: 'Condition', value: listing.condition },
+        { icon: MapPin, label: 'Location', value: listing.location_label ?? '—' },
+        { icon: Car, label: 'Body Type', value: listing.body_type ?? '—' },
+        { icon: CircleCheck, label: 'Condition', value: listing.condition },
         { icon: Calendar, label: 'Title', value: listing.title_status },
     ];
 
+    const listingDescription =
+        listing.seller_notes?.trim() ||
+        `${listing.title} for ${formatPrice(listing.asking_price)} with ${formatMileage(listing.mileage)} miles. ${listing.transmission}, ${listing.fuel_type}, ${listing.drivetrain}.`;
+
     return (
         <>
-            <Head title={listing.title} />
+            <SeoHead
+                title={listing.title}
+                description={listingDescription}
+                path={`/market/${listing.slug}`}
+                image={images[0]?.url}
+                type="product"
+                jsonLd={[
+                    buildVehicleListingSchema(seo.appUrl, listing),
+                    buildListingBreadcrumbSchema(seo.appUrl, listing),
+                ]}
+            />
 
             <MarketShell auth={auth} listHref={listHref}>
                 <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
@@ -95,12 +124,19 @@ export default function ShowListing({
                         <div className="space-y-6 lg:col-span-2">
                             {/* Gallery */}
                             <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-                                <div className="aspect-[16/10] bg-muted">
+                                <div className="relative aspect-[16/10] bg-muted">
                                     <img
                                         src={images[activeImage]?.url}
                                         alt={listing.title}
                                         className="size-full object-cover"
                                     />
+                                    {listing.status === 'approved' && (
+                                        <SaveListingButton
+                                            listingId={listing.id}
+                                            isSaved={listing.is_saved}
+                                            className="absolute top-3 right-3 size-10"
+                                        />
+                                    )}
                                 </div>
                                 {images.length > 1 && (
                                     <div className="flex gap-2 overflow-x-auto p-3">
@@ -135,7 +171,18 @@ export default function ShowListing({
                                     monthly={monthly}
                                     listedDate={listedDate}
                                     isOwner={isOwner}
+                                    canMarkSold={canMarkSold}
                                 />
+                                {!isOwner && listing.status === 'approved' && (
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <CompareListingButton
+                                            listingId={listing.id}
+                                        />
+                                        <ListingReportDialog
+                                            listingSlug={listing.slug}
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             {/* Seller notes */}
@@ -227,7 +274,18 @@ export default function ShowListing({
                                     monthly={monthly}
                                     listedDate={listedDate}
                                     isOwner={isOwner}
+                                    canMarkSold={canMarkSold}
                                 />
+                                {!isOwner && listing.status === 'approved' && (
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <CompareListingButton
+                                            listingId={listing.id}
+                                        />
+                                        <ListingReportDialog
+                                            listingSlug={listing.slug}
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <SellerContactCard
@@ -251,24 +309,43 @@ function TitleBlock({
     monthly,
     listedDate,
     isOwner,
+    canMarkSold,
 }: {
     listing: VehicleListing;
     monthly: number;
     listedDate: string | null;
     isOwner: boolean;
+    canMarkSold: boolean;
 }) {
+    const markSold = () => {
+        if (
+            !confirm(
+                'Mark this listing as sold? It will be removed from browse results.',
+            )
+        ) {
+            return;
+        }
+
+        router.post(`/listings/${listing.id}/mark-sold`);
+    };
+
     return (
         <>
             <div className="flex flex-wrap items-start justify-between gap-2">
                 <h1 className="text-2xl font-bold text-foreground">
                     {listing.title}
                 </h1>
+                {listing.status === 'sold' && (
+                    <Badge className="border-transparent bg-muted text-foreground">
+                        Sold
+                    </Badge>
+                )}
                 {!isOwner && listing.status === 'approved' && (
                     <Badge className="border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-400 dark:hover:bg-emerald-950">
                         Available
                     </Badge>
                 )}
-                {isOwner && (
+                {isOwner && listing.status !== 'sold' && (
                     <Badge variant="outline">{listing.status_label}</Badge>
                 )}
             </div>
@@ -278,11 +355,27 @@ function TitleBlock({
             <p className="mt-1 text-sm text-muted-foreground">
                 Est. {formatPrice(monthly)}/mo · {formatMileage(listing.mileage)}{' '}
                 mi · {listing.drivetrain}
+                {listing.location_label
+                    ? ` · ${listing.location_label}`
+                    : ''}
             </p>
             {listedDate && (
                 <p className="mt-2 text-xs text-muted-foreground">
                     Listed on {listedDate}
+                    {(listing.view_count ?? 0) > 0 && (
+                        <> · {listing.view_count} views</>
+                    )}
                 </p>
+            )}
+            {canMarkSold && (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4 w-full"
+                    onClick={markSold}
+                >
+                    Mark as sold
+                </Button>
             )}
         </>
     );

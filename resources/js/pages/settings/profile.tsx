@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Camera } from 'lucide-react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
@@ -9,6 +9,7 @@ import {
 } from '@/components/field-label';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,7 +107,7 @@ export default function Profile() {
 
     return (
         <>
-            <Head title="Profile settings" />
+            <PrivatePageHead title="Profile settings" />
 
             <h1 className="sr-only">Profile settings</h1>
 

@@ -6,12 +6,15 @@ use App\Enums\ListingStatus;
 use App\Http\Requests\StoreVehicleListingRequest;
 use App\Http\Requests\UpdateVehicleListingRequest;
 use App\Http\Resources\VehicleListingResource;
+use App\Mail\ListingApprovedMail;
 use App\Models\Conversation;
 use App\Models\VehicleListing;
 use App\Models\VehicleListingImage;
 use App\Services\MarketSettings;
+use App\Services\SavedListingPriceAlerts;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -69,6 +72,7 @@ class VehicleListingController extends Controller
                 'approved' => (int) ($counts[ListingStatus::Approved->value] ?? 0),
                 'pending' => (int) ($counts[ListingStatus::Pending->value] ?? 0),
                 'rejected' => (int) ($counts[ListingStatus::Rejected->value] ?? 0),
+                'sold' => (int) ($counts[ListingStatus::Sold->value] ?? 0),
             ],
         ]);
     }
@@ -127,6 +131,10 @@ class VehicleListingController extends Controller
 
         $status = $marketSettings->initialListingStatus();
 
+        if ($status === ListingStatus::Approved && $request->user()->email) {
+            Mail::to($request->user()->email)->queue(new ListingApprovedMail($listing));
+        }
+
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => $status === ListingStatus::Approved
@@ -172,6 +180,8 @@ class VehicleListingController extends Controller
     {
         abort_unless($listing->user_id === $request->user()->id, 403);
 
+        $previousPrice = $listing->asking_price;
+
         $listing->update($request->safe()->except(['images', 'remove_images']));
 
         $removeIds = collect($request->input('remove_images', []))
@@ -208,6 +218,13 @@ class VehicleListingController extends Controller
             ]);
         }
 
+        if ($listing->wasChanged('asking_price')) {
+            app(SavedListingPriceAlerts::class)->notifyIfPriceDropped(
+                $listing->fresh(),
+                $previousPrice,
+            );
+        }
+
         if ($listing->status === ListingStatus::Rejected) {
             $listing->update(['status' => ListingStatus::Pending]);
         }
@@ -242,6 +259,21 @@ class VehicleListingController extends Controller
         return redirect()->route('listings.index');
     }
 
+    public function markSold(Request $request, VehicleListing $listing): RedirectResponse
+    {
+        abort_unless($listing->user_id === $request->user()->id, 403);
+        abort_unless($listing->isApproved(), 422, 'Only live listings can be marked as sold.');
+
+        $listing->update(['status' => ListingStatus::Sold]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Listing marked as sold.',
+        ]);
+
+        return back();
+    }
+
     public function show(Request $request, VehicleListing $listing): Response|RedirectResponse
     {
         $routeKey = (string) $request->route()->originalParameter('listing');
@@ -252,16 +284,27 @@ class VehicleListingController extends Controller
 
         $user = $request->user();
 
+        if (! $user || $listing->user_id !== $user->id) {
+            $sessionKey = 'listing_view_'.$listing->id;
+
+            if (! $request->session()->has($sessionKey)) {
+                $listing->increment('view_count');
+                $request->session()->put($sessionKey, true);
+            }
+        }
+
         abort_unless(
-            $listing->isApproved()
+            $listing->isPubliclyViewable()
             || ($user && ($listing->user_id === $user->id || $user->isAdmin())),
             403,
         );
 
         $listing->load('images', 'user');
 
+        $savedIds = $user?->savedListingIds() ?? [];
+
         $similarListings = VehicleListing::query()
-            ->where('status', ListingStatus::Approved)
+            ->activeMarketplace()
             ->where('id', '!=', $listing->id)
             ->where('make', $listing->make)
             ->with('images')
@@ -271,9 +314,13 @@ class VehicleListingController extends Controller
             ->map(fn (VehicleListing $item) => VehicleListingResource::make($item));
 
         return Inertia::render('listings/show', [
-            'listing' => VehicleListingResource::make($listing),
+            'listing' => VehicleListingResource::make(
+                $listing,
+                in_array($listing->id, $savedIds, true),
+            ),
             'similarListings' => $similarListings,
             'isOwner' => $user && $listing->user_id === $user->id,
+            'canMarkSold' => $user && $listing->user_id === $user->id && $listing->isApproved(),
             'messageConversation' => $user && $listing->user_id !== $user->id
                 ? Conversation::summaryForListing($user, $listing)
                 : null,
@@ -298,6 +345,7 @@ class VehicleListingController extends Controller
             'transmissions' => ['Automatic', 'Manual', 'CVT', 'Other'],
             'fuelTypes' => ['Gasoline', 'Diesel', 'Hybrid', 'Electric', 'Plug-in Hybrid', 'Other'],
             'drivetrains' => ['FWD', 'RWD', 'AWD', '4WD'],
+            'bodyTypes' => ['Sedan', 'SUV', 'Truck', 'Coupe', 'Hatchback', 'Van', 'Convertible', 'Wagon', 'Other'],
         ];
     }
 }

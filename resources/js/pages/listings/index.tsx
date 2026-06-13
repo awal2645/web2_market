@@ -1,6 +1,7 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Car, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +36,7 @@ type Counts = {
     approved: number;
     pending: number;
     rejected: number;
+    sold: number;
 };
 
 type Props = {
@@ -50,6 +52,7 @@ const statusStyles: Record<string, string> = {
         'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400',
     rejected:
         'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400',
+    sold: 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300',
 };
 
 const STATUS_TABS = [
@@ -57,6 +60,7 @@ const STATUS_TABS = [
     { value: 'approved', label: 'Live' },
     { value: 'pending', label: 'Pending' },
     { value: 'rejected', label: 'Not Approved' },
+    { value: 'sold', label: 'Sold' },
 ] as const;
 
 const SORT_OPTIONS = [
@@ -86,7 +90,7 @@ export default function MyListings({ listings, filters, counts }: Props) {
 
     return (
         <>
-            <Head title="My Listings" />
+            <PrivatePageHead title="My Listings" />
 
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

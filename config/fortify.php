@@ -160,9 +160,10 @@ return [
     |
     */
 
-    'features' => [
+    'features' => array_values(array_filter([
         Features::registration(),
         Features::resetPasswords(),
-    ],
+        config('market.require_email_verification') ? Features::emailVerification() : null,
+    ])),
 
 ];

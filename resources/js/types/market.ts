@@ -20,6 +20,11 @@ export type VehicleListing = {
     transmission: string;
     fuel_type: string;
     drivetrain: string;
+    body_type: string | null;
+    city: string | null;
+    state: string | null;
+    zip_code: string | null;
+    location_label: string | null;
     asking_price: number;
     seller_notes: string | null;
     contact_name: string;
@@ -27,6 +32,10 @@ export type VehicleListing = {
     contact_phone: string;
     status: string;
     status_label: string;
+    view_count?: number;
+    is_saved?: boolean;
+    saved_price?: number | null;
+    price_alerts_enabled?: boolean;
     images: VehicleListingImage[];
     created_at: string | null;
     seller_id?: string;
@@ -40,6 +49,7 @@ export type ListingFormOptions = {
     transmissions: string[];
     fuelTypes: string[];
     drivetrains: string[];
+    bodyTypes: string[];
 };
 
 export type ListingFormDefaults = {

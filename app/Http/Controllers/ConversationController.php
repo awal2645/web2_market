@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
+use App\Events\UnreadCountUpdated;
 use App\Http\Requests\StoreMessageRequest;
 use App\Http\Requests\UpdateMessageRequest;
 use App\Http\Resources\ConversationResource;
 use App\Http\Resources\MessageResource;
 use App\Http\Resources\VehicleListingResource;
+use App\Mail\NewMessageMail;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\User;
 use App\Models\VehicleListing;
+use App\Support\Broadcasting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -291,6 +297,41 @@ class ConversationController extends Controller
 
         $conversation->update(['last_message_at' => $message->created_at]);
 
+        $this->notifyRecipient($conversation, $message, $senderId);
+
+        if (Broadcasting::isEnabled()) {
+            MessageSent::dispatch($message);
+
+            $recipientId = $conversation->otherParticipantId($senderId);
+            $recipient = User::query()->find($recipientId);
+
+            if ($recipient) {
+                UnreadCountUpdated::dispatch(
+                    $recipient->id,
+                    $recipient->unreadMessagesCount(),
+                );
+            }
+        }
+
         return $message->load(['sender', 'replyTo.sender']);
+    }
+
+    private function notifyRecipient(
+        Conversation $conversation,
+        Message $message,
+        string $senderId,
+    ): void {
+        $recipientId = $conversation->otherParticipantId($senderId);
+        $recipient = User::query()->find($recipientId);
+
+        if (! $recipient?->email) {
+            return;
+        }
+
+        Mail::to($recipient->email)->queue(new NewMessageMail(
+            $message,
+            $conversation,
+            $recipient,
+        ));
     }
 }

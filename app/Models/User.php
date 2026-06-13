@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
@@ -20,6 +21,7 @@ use Illuminate\Support\Str;
 
 #[Fillable([
     'name',
+    'slug',
     'email',
     'phone',
     'image_url',
@@ -27,7 +29,9 @@ use Illuminate\Support\Str;
     'password',
     'password_hash',
     'is_admin',
+    'is_dealer',
     'listing_prompt_completed_at',
+    'email_verified_at',
 ])]
 #[Hidden(['password_hash'])]
 class User extends Model implements AuthenticatableContract, CanResetPasswordContract
@@ -51,7 +55,64 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
             if (! $user->getKey()) {
                 $user->setAttribute($user->getKeyName(), (string) Str::uuid());
             }
+
+            if (blank($user->slug)) {
+                $user->slug = static::generateUniqueSlug($user);
+            }
         });
+
+        static::updating(function (User $user): void {
+            if ($user->isDirty('name') && ! $user->isDirty('slug')) {
+                $user->slug = static::generateUniqueSlug($user);
+            }
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /**
+     * @param  mixed  $value
+     * @param  string|null  $field
+     */
+    public function resolveRouteBinding($value, $field = null): Model
+    {
+        if (Str::isUuid($value)) {
+            $user = static::query()->whereKey($value)->first();
+
+            if ($user) {
+                return $user;
+            }
+        }
+
+        $user = static::query()->where('slug', $value)->first();
+
+        if ($user) {
+            return $user;
+        }
+
+        throw (new ModelNotFoundException)->setModel(static::class, [$value]);
+    }
+
+    public static function generateUniqueSlug(User $user): string
+    {
+        $base = Str::slug($user->name ?: 'seller') ?: 'seller';
+        $slug = $base;
+        $counter = 2;
+
+        while (
+            static::query()
+                ->where('slug', $slug)
+                ->when($user->exists, fn ($query) => $query->whereKeyNot($user->id))
+                ->exists()
+        ) {
+            $slug = "{$base}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
     }
 
     /**
@@ -61,13 +122,19 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return [
             'is_admin' => 'boolean',
+            'is_dealer' => 'boolean',
             'listing_prompt_completed_at' => 'datetime',
+            'email_verified_at' => 'datetime',
         ];
     }
 
     public function hasVerifiedEmail(): bool
     {
-        return true;
+        if (! config('market.require_email_verification')) {
+            return true;
+        }
+
+        return $this->email_verified_at !== null;
     }
 
     public function getAuthPassword(): string
@@ -189,5 +256,24 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
                     ->orWhere('participant_two_id', $this->id);
             })
             ->count();
+    }
+
+    /**
+     * @return HasMany<SavedListing, $this>
+     */
+    public function savedListings(): HasMany
+    {
+        return $this->hasMany(SavedListing::class);
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function savedListingIds(): array
+    {
+        return $this->savedListings()
+            ->pluck('vehicle_listing_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
     }
 }

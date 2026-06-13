@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Broadcasting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -48,6 +49,20 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'unreadMessagesCount' => $user ? $user->unreadMessagesCount() : 0,
+            'savedListingIds' => $user ? $user->savedListingIds() : [],
+            'compareListingIds' => array_map(
+                'intval',
+                $request->session()->get('compare_listing_ids', []),
+            ),
+            'messagePollSeconds' => (int) config('market.message_poll_seconds', 5),
+            'broadcasting' => Broadcasting::clientConfig($user?->id),
+            'seo' => [
+                'appUrl' => rtrim(config('app.url'), '/'),
+                'siteName' => config('seo.site_name'),
+                'defaultDescription' => config('seo.default_description'),
+                'defaultImage' => config('seo.default_image'),
+                'twitterHandle' => config('seo.twitter_handle'),
+            ],
         ];
     }
 }

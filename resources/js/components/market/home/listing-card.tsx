@@ -1,10 +1,10 @@
-import { Heart } from 'lucide-react';
 import {
     estimateMonthlyPayment,
     formatMileage,
     formatPrice,
     type DisplayListing,
 } from '@/data/homepage';
+import { SaveListingButton } from '@/components/market/save-listing-button';
 
 export function HomeListingCard({ listing }: { listing: DisplayListing }) {
     const monthly = estimateMonthlyPayment(listing.asking_price);
@@ -24,14 +24,11 @@ export function HomeListingCard({ listing }: { listing: DisplayListing }) {
                         e.currentTarget.src = '/images/demo-vehicles/car-1.jpg';
                     }}
                 />
-                <button
-                    type="button"
-                    onClick={(e) => e.preventDefault()}
-                    className="absolute top-2.5 right-2.5 flex size-8 items-center justify-center rounded-full bg-background/90 text-muted-foreground shadow-sm transition hover:text-[#1565C0] dark:hover:text-[#90caf9]"
-                    aria-label="Save listing"
-                >
-                    <Heart className="size-4" />
-                </button>
+                <SaveListingButton
+                    listingId={Number(listing.id)}
+                    isSaved={listing.is_saved}
+                    className="absolute top-2.5 right-2.5"
+                />
             </div>
             <div className="flex flex-1 flex-col p-4">
                 <h3 className="font-bold text-foreground group-hover:text-[#1565C0] dark:group-hover:text-[#90caf9]">
@@ -40,6 +37,9 @@ export function HomeListingCard({ listing }: { listing: DisplayListing }) {
                 <p className="mt-1 text-sm text-muted-foreground">
                     {formatMileage(listing.mileage)} miles ·{' '}
                     {listing.drivetrain}
+                    {listing.location_label
+                        ? ` · ${listing.location_label}`
+                        : ''}
                 </p>
                 <div className="mt-3 flex items-baseline justify-between gap-2">
                     <p className="text-xl font-extrabold text-[#1565C0]">

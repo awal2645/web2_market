@@ -1,11 +1,12 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Congratulations() {
     return (
         <>
-            <Head title="Welcome!" />
+            <PrivatePageHead title="Welcome!" />
 
             <div className="flex flex-col gap-6 text-center">
                 <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-green-500/10 text-green-600 dark:text-green-400">

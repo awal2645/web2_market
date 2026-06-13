@@ -18,8 +18,14 @@ use Inertia\Response;
 
 class SellerProfileController extends Controller
 {
-    public function show(Request $request, User $seller): Response
+    public function show(Request $request, User $seller): Response|RedirectResponse
     {
+        $routeKey = (string) $request->route()->originalParameter('seller');
+
+        if ($seller->slug && $routeKey !== $seller->slug) {
+            return redirect()->route('sellers.show', $seller, 301);
+        }
+
         $user = $request->user();
 
         $search = $request->string('q')->toString();

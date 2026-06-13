@@ -1,11 +1,14 @@
 <?php
 
+use App\Events\MessageSent;
+use App\Events\UnreadCountUpdated;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
 use App\Models\VehicleListing;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -121,6 +124,28 @@ test('poll endpoint returns new messages after a given id', function () {
         ->getJson(route('messages.poll', ['conversation' => $conversation, 'after_id' => $first->id]))
         ->assertOk()
         ->assertJsonPath('messages.0.body', 'Second');
+});
+
+test('sending a message broadcasts realtime events when pusher is enabled', function () {
+    config([
+        'broadcasting.default' => 'pusher',
+        'broadcasting.connections.pusher.key' => 'test-key',
+    ]);
+
+    Event::fake([MessageSent::class, UnreadCountUpdated::class]);
+
+    $seller = User::factory()->create();
+    $buyer = User::factory()->create();
+    $conversation = Conversation::findOrCreateBetween($buyer->id, $seller->id);
+
+    $this->actingAs($buyer)
+        ->post(route('messages.messages.store', $conversation), [
+            'body' => 'Real-time hello',
+        ])
+        ->assertRedirect();
+
+    Event::assertDispatched(MessageSent::class);
+    Event::assertDispatched(UnreadCountUpdated::class);
 });
 
 test('users cannot access conversations they are not part of', function () {

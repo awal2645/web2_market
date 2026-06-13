@@ -1,11 +1,12 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Link } from '@inertiajs/react';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { CarFront } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function ListVehiclePrompt() {
     return (
         <>
-            <Head title="List Your Vehicle" />
+            <PrivatePageHead title="List Your Vehicle" />
 
             <div className="flex flex-col gap-6 text-center">
                 <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">

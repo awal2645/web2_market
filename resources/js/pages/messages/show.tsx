@@ -1,7 +1,8 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, MoreVertical } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { DeleteConversationMenuItem } from '@/components/messages/delete-conversation-dialog';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { MessageBubble } from '@/components/messages/message-bubble';
 import { MessageComposer } from '@/components/messages/message-composer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,6 +13,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useInitials } from '@/hooks/use-initials';
+import {
+    getEcho,
+    isPusherConfigured,
+    leaveEchoChannel,
+    type BroadcastingConfig,
+} from '@/lib/echo';
+import type { Auth } from '@/types';
 import type { Conversation, Message } from '@/types/messages';
 
 type Props = {
@@ -19,12 +27,28 @@ type Props = {
     messages: Message[];
 };
 
-const POLL_INTERVAL_MS = 5_000;
+function withOwnership(message: Message, userId?: string): Message {
+    return {
+        ...message,
+        is_mine: message.sender_id === userId,
+    };
+}
 
 export default function MessagesShow({
     conversation,
     messages: initialMessages,
 }: Props) {
+    const {
+        auth,
+        messagePollSeconds = 5,
+        broadcasting,
+    } = usePage<{
+        auth: Auth;
+        messagePollSeconds?: number;
+        broadcasting?: BroadcastingConfig;
+    }>().props;
+    const pollIntervalMs = Math.max(3, messagePollSeconds) * 1000;
+    const usePusher = isPusherConfigured(broadcasting);
     const getInitials = useInitials();
     const [messages, setMessages] = useState(initialMessages);
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -45,6 +69,50 @@ export default function MessagesShow({
     }, [messages]);
 
     useEffect(() => {
+        if (!usePusher || !broadcasting) {
+            return;
+        }
+
+        const echo = getEcho(broadcasting);
+        const channelName = `conversation.${conversation.id}`;
+        const channel = echo?.private(channelName);
+
+        channel?.listen(
+            '.message.sent',
+            (payload: { message: Message }) => {
+                const incoming = withOwnership(
+                    payload.message,
+                    auth.user?.id,
+                );
+
+                setMessages((current) => {
+                    if (current.some((message) => message.id === incoming.id)) {
+                        return current;
+                    }
+
+                    return [...current, incoming];
+                });
+
+                if (!incoming.is_mine) {
+                    window.dispatchEvent(
+                        new CustomEvent('market:unread-updated', {
+                            detail: { count: 0 },
+                        }),
+                    );
+                }
+            },
+        );
+
+        return () => {
+            leaveEchoChannel(`private-${channelName}`);
+        };
+    }, [auth.user?.id, broadcasting, conversation.id, usePusher]);
+
+    useEffect(() => {
+        if (usePusher) {
+            return;
+        }
+
         let active = true;
 
         const poll = async () => {
@@ -84,13 +152,13 @@ export default function MessagesShow({
             }
         };
 
-        const interval = window.setInterval(poll, POLL_INTERVAL_MS);
+        const interval = window.setInterval(poll, pollIntervalMs);
 
         return () => {
             active = false;
             window.clearInterval(interval);
         };
-    }, [conversation.id]);
+    }, [conversation.id, pollIntervalMs, usePusher]);
 
     const jumpToMessage = (messageId: number) => {
         document
@@ -100,7 +168,7 @@ export default function MessagesShow({
 
     return (
         <>
-            <Head title={`Chat with ${conversation.other_user.name}`} />
+            <PrivatePageHead title={`Chat with ${conversation.other_user.name}`} />
 
             <div className="flex h-[calc(100vh-4rem)] flex-col">
                 <div className="flex items-center gap-3 border-b border-border pb-4">

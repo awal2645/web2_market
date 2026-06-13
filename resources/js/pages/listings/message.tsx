@@ -1,7 +1,8 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Mail, Phone, Send } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { MarketShell } from '@/components/market/home/market-shell';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/data/homepage';
 import { register as registerRoute } from '@/routes';
@@ -48,7 +49,7 @@ export default function ListingMessage({
 
     return (
         <>
-            <Head title={`Message Seller - ${listing.title}`} />
+            <PrivatePageHead title={`Message Seller - ${listing.title}`} />
 
             <MarketShell auth={auth} listHref={listHref}>
                 <main className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">

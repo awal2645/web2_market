@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ListingStatus;
 use Database\Factories\VehicleListingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -28,12 +29,17 @@ use Illuminate\Support\Str;
     'transmission',
     'fuel_type',
     'drivetrain',
+    'body_type',
+    'city',
+    'state',
+    'zip_code',
     'asking_price',
     'seller_notes',
     'contact_name',
     'contact_email',
     'contact_phone',
     'status',
+    'view_count',
 ])]
 class VehicleListing extends Model
 {
@@ -141,6 +147,38 @@ class VehicleListing extends Model
     public function isApproved(): bool
     {
         return $this->status === ListingStatus::Approved;
+    }
+
+    public function isSold(): bool
+    {
+        return $this->status === ListingStatus::Sold;
+    }
+
+    public function isPubliclyViewable(): bool
+    {
+        return in_array($this->status, [ListingStatus::Approved, ListingStatus::Sold], true);
+    }
+
+    /**
+     * @param  Builder<VehicleListing>  $query
+     */
+    public function scopeActiveMarketplace($query): void
+    {
+        $query->where('status', ListingStatus::Approved);
+    }
+
+    public function locationLabel(): ?string
+    {
+        $parts = array_filter([
+            $this->city,
+            $this->state,
+        ]);
+
+        if ($parts === []) {
+            return null;
+        }
+
+        return implode(', ', $parts);
     }
 
     public function title(): string

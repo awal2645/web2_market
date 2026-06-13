@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { MoreVertical, Pencil, Reply, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { MessageQuotedReply } from '@/components/messages/message-quoted-reply';
+import { ImagePreviewLightbox } from '@/components/messages/image-preview-lightbox';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -48,6 +49,7 @@ export function MessageBubble({
     const [editOpen, setEditOpen] = useState(false);
     const [editBody, setEditBody] = useState(message.body);
     const [saving, setSaving] = useState(false);
+    const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
 
     const linkClass = message.is_mine
         ? 'underline break-all text-white hover:text-blue-100'
@@ -85,6 +87,9 @@ export function MessageBubble({
     };
 
     const canEdit = message.is_mine && message.attachment_type !== 'voice';
+    const isImageOnly =
+        message.attachment_type === 'image' &&
+        (!message.body || message.body === 'Photo');
 
     return (
         <>
@@ -97,7 +102,8 @@ export function MessageBubble({
             >
                 <div
                     className={cn(
-                        'min-w-0 rounded-2xl px-4 py-2.5 text-sm shadow-sm',
+                        'min-w-0 rounded-2xl text-sm shadow-sm',
+                        isImageOnly ? 'overflow-hidden p-1' : 'px-4 py-2.5',
                         message.is_mine
                             ? 'rounded-br-md bg-[#1565C0] text-white'
                             : 'rounded-bl-md border border-border bg-card text-foreground',
@@ -117,18 +123,29 @@ export function MessageBubble({
 
                     {message.attachment_type === 'image' &&
                         message.attachment_url && (
-                            <a
-                                href={message.attachment_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mb-2 block"
-                            >
-                                <img
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => setImagePreviewOpen(true)}
+                                    className={cn(
+                                        'block w-full overflow-hidden rounded-lg',
+                                        !isImageOnly && 'mb-2',
+                                    )}
+                                    aria-label="View full image"
+                                >
+                                    <img
+                                        src={message.attachment_url}
+                                        alt="Shared image"
+                                        className="max-h-64 w-full cursor-zoom-in object-cover transition hover:opacity-95"
+                                    />
+                                </button>
+                                <ImagePreviewLightbox
                                     src={message.attachment_url}
                                     alt="Shared image"
-                                    className="max-h-64 max-w-full rounded-lg object-cover"
+                                    open={imagePreviewOpen}
+                                    onOpenChange={setImagePreviewOpen}
                                 />
-                            </a>
+                            </>
                         )}
 
                     {message.attachment_type === 'voice' &&
@@ -162,6 +179,7 @@ export function MessageBubble({
                     <div
                         className={cn(
                             'mt-1 flex items-center gap-2 text-[10px]',
+                            isImageOnly && 'px-2 pb-1',
                             message.is_mine
                                 ? 'text-blue-100'
                                 : 'text-muted-foreground',

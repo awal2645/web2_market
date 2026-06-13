@@ -21,7 +21,9 @@ class SellerProfileResource
     ): array {
         return [
             'id' => $seller->id,
+            'slug' => $seller->slug,
             'name' => $seller->name ?? 'Seller',
+            'is_dealer' => (bool) $seller->is_dealer,
             'avatar' => $seller->avatar,
             'member_since' => $seller->created_at?->toISOString(),
             'average_rating' => $averageRating,

@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowRight,
@@ -10,6 +10,7 @@ import {
     XCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -93,7 +94,7 @@ export default function Dashboard({
 
     return (
         <>
-            <Head title="Dashboard" />
+            <PrivatePageHead title="Dashboard" />
 
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

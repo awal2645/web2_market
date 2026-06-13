@@ -1,8 +1,9 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import Heading from '@/components/heading';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import type { VehicleListing } from '@/types/market';
 
 type Props = {
@@ -13,7 +14,7 @@ type Props = {
 export default function AdminListings({ listings, approvalMode }: Props) {
     return (
         <>
-            <Head title="Admin - Vehicle Listings" />
+            <PrivatePageHead title="Admin - Vehicle Listings" />
 
             <div className="space-y-8">
                 <Heading

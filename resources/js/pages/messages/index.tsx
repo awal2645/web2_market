@@ -1,7 +1,8 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { MessageSquare, Search, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { DeleteConversationDialog } from '@/components/messages/delete-conversation-dialog';
+import { PrivatePageHead } from '@/components/seo/seo-head';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -69,7 +70,7 @@ export default function MessagesIndex({ conversations }: Props) {
 
     return (
         <>
-            <Head title="Messages" />
+            <PrivatePageHead title="Messages" />
 
             <div className="flex h-[calc(100vh-4rem)] flex-col">
                 <div className="border-b border-border px-1 pb-4">

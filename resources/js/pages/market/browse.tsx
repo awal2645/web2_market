@@ -1,8 +1,9 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { useState } from 'react';
 import { MarketShell } from '@/components/market/home/market-shell';
 import { HomeListingCard } from '@/components/market/home/listing-card';
+import { SeoHead } from '@/components/seo/seo-head';
 import {
     Sheet,
     SheetContent,
@@ -10,8 +11,10 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { vehicleListingToDisplay } from '@/data/homepage';
+import { buildBrowseBreadcrumbSchema } from '@/lib/seo-schema';
 import { register } from '@/routes';
 import type { Auth } from '@/types';
+import type { SeoDefaults } from '@/types/seo';
 import type { VehicleListing } from '@/types/market';
 
 type Paginated<T> = {
@@ -27,6 +30,11 @@ type Filters = {
     model: string;
     year: string;
     price: string;
+    mileage: string;
+    state: string;
+    transmission: string;
+    fuel_type: string;
+    body_type: string;
     sort: string;
     q: string;
 };
@@ -34,10 +42,26 @@ type Filters = {
 type FilterOptions = {
     makes: string[];
     models: string[];
+    modelsByMake: Record<string, string[]>;
     years: string[];
     prices: string[];
+    mileages: string[];
+    states: string[];
+    transmissions: string[];
+    fuelTypes: string[];
+    bodyTypes: string[];
     sorts: { value: string; label: string }[];
 };
+
+function modelOptionsForMake(make: string, filterOptions: FilterOptions): string[] {
+    if (!make || make === 'Any Make') {
+        return filterOptions.models;
+    }
+
+    const dependent = filterOptions.modelsByMake[make] ?? [];
+
+    return ['Any Model', ...dependent];
+}
 
 type Props = {
     listings: Paginated<VehicleListing>;
@@ -57,7 +81,7 @@ export default function Browse({
     filters,
     filterOptions,
 }: Props) {
-    const { auth } = usePage<{ auth: Auth }>().props;
+    const { auth, seo } = usePage<{ auth: Auth; seo: SeoDefaults }>().props;
     const listHref = auth.user ? '/listings/create' : register();
 
     const [localFilters, setLocalFilters] = useState(filters);
@@ -84,6 +108,11 @@ export default function Browse({
             model: '',
             year: '',
             price: '',
+            mileage: '',
+            state: '',
+            transmission: '',
+            fuel_type: '',
+            body_type: '',
             sort: 'newest',
             q: '',
         };
@@ -96,9 +125,19 @@ export default function Browse({
 
     const displayListings = listings.data.map(vehicleListingToDisplay);
 
+    const browseDescription =
+        listings.total > 0
+            ? `Browse ${listings.total} vehicles for sale. Filter by make, model, year, and price on Web2Autos.`
+            : 'Browse vehicles for sale on Web2Autos. Filter by make, model, year, and price.';
+
     return (
         <>
-            <Head title="Browse Vehicles" />
+            <SeoHead
+                title="Browse Vehicles"
+                description={browseDescription}
+                path="/browse"
+                jsonLd={buildBrowseBreadcrumbSchema(seo.appUrl)}
+            />
 
             <MarketShell auth={auth} listHref={listHref}>
                 <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -283,15 +322,25 @@ function BrowseFilterForm({
                     value={localFilters.make || 'Any Make'}
                     options={filterOptions.makes}
                     onChange={(v) =>
-                        setLocalFilters((f) => ({ ...f, make: v }))
+                        setLocalFilters((f) => ({
+                            ...f,
+                            make: v === 'Any Make' ? '' : v,
+                            model: '',
+                        }))
                     }
                 />
                 <FilterSelect
                     label="Model"
                     value={localFilters.model || 'Any Model'}
-                    options={filterOptions.models}
+                    options={modelOptionsForMake(
+                        localFilters.make || 'Any Make',
+                        filterOptions,
+                    )}
                     onChange={(v) =>
-                        setLocalFilters((f) => ({ ...f, model: v }))
+                        setLocalFilters((f) => ({
+                            ...f,
+                            model: v === 'Any Model' ? '' : v,
+                        }))
                     }
                 />
                 <FilterSelect
@@ -299,7 +348,10 @@ function BrowseFilterForm({
                     value={localFilters.year || 'Any Year'}
                     options={filterOptions.years}
                     onChange={(v) =>
-                        setLocalFilters((f) => ({ ...f, year: v }))
+                        setLocalFilters((f) => ({
+                            ...f,
+                            year: v === 'Any Year' ? '' : v,
+                        }))
                     }
                 />
                 <FilterSelect
@@ -307,7 +359,66 @@ function BrowseFilterForm({
                     value={localFilters.price || 'Any Price'}
                     options={filterOptions.prices}
                     onChange={(v) =>
-                        setLocalFilters((f) => ({ ...f, price: v }))
+                        setLocalFilters((f) => ({
+                            ...f,
+                            price: v === 'Any Price' ? '' : v,
+                        }))
+                    }
+                />
+                <FilterSelect
+                    label="Mileage"
+                    value={localFilters.mileage || 'Any Mileage'}
+                    options={filterOptions.mileages}
+                    onChange={(v) =>
+                        setLocalFilters((f) => ({
+                            ...f,
+                            mileage: v === 'Any Mileage' ? '' : v,
+                        }))
+                    }
+                />
+                <FilterSelect
+                    label="State"
+                    value={localFilters.state || 'Any State'}
+                    options={filterOptions.states}
+                    onChange={(v) =>
+                        setLocalFilters((f) => ({
+                            ...f,
+                            state: v === 'Any State' ? '' : v,
+                        }))
+                    }
+                />
+                <FilterSelect
+                    label="Transmission"
+                    value={localFilters.transmission || 'Any Transmission'}
+                    options={filterOptions.transmissions}
+                    onChange={(v) =>
+                        setLocalFilters((f) => ({
+                            ...f,
+                            transmission:
+                                v === 'Any Transmission' ? '' : v,
+                        }))
+                    }
+                />
+                <FilterSelect
+                    label="Fuel"
+                    value={localFilters.fuel_type || 'Any Fuel Type'}
+                    options={filterOptions.fuelTypes}
+                    onChange={(v) =>
+                        setLocalFilters((f) => ({
+                            ...f,
+                            fuel_type: v === 'Any Fuel Type' ? '' : v,
+                        }))
+                    }
+                />
+                <FilterSelect
+                    label="Body type"
+                    value={localFilters.body_type || 'Any Body Type'}
+                    options={filterOptions.bodyTypes}
+                    onChange={(v) =>
+                        setLocalFilters((f) => ({
+                            ...f,
+                            body_type: v === 'Any Body Type' ? '' : v,
+                        }))
                     }
                 />
                 <FilterSelect
