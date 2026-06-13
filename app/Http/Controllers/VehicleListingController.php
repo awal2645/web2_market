@@ -242,8 +242,14 @@ class VehicleListingController extends Controller
         return redirect()->route('listings.index');
     }
 
-    public function show(Request $request, VehicleListing $listing): Response
+    public function show(Request $request, VehicleListing $listing): Response|RedirectResponse
     {
+        $routeKey = (string) $request->route()->originalParameter('listing');
+
+        if ($routeKey !== $listing->slug) {
+            return redirect()->route('listings.show', $listing, 301);
+        }
+
         $user = $request->user();
 
         abort_unless(
@@ -252,7 +258,7 @@ class VehicleListingController extends Controller
             403,
         );
 
-        $listing->load('images');
+        $listing->load('images', 'user');
 
         $similarListings = VehicleListing::query()
             ->where('status', ListingStatus::Approved)
@@ -272,6 +278,12 @@ class VehicleListingController extends Controller
                 ? Conversation::summaryForListing($user, $listing)
                 : null,
             'messageUrl' => route('listings.message', $listing, absolute: false),
+            'sellerProfileUrl' => $listing->user
+                ? route('sellers.show', $listing->user, absolute: false)
+                : null,
+            'sellerRating' => $listing->user
+                ? SellerProfileController::ratingStats($listing->user)
+                : null,
         ]);
     }
 

@@ -1,8 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Mail, Phone, Send } from 'lucide-react';
 import { FormEvent, useState } from 'react';
-import { HomeFooter } from '@/components/market/home/footer';
-import { HomeHeader } from '@/components/market/home/header-hero';
+import { MarketShell } from '@/components/market/home/market-shell';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/data/homepage';
 import { register as registerRoute } from '@/routes';
@@ -51,10 +50,8 @@ export default function ListingMessage({
         <>
             <Head title={`Message Seller - ${listing.title}`} />
 
-            <div className="min-h-screen bg-background">
-                <HomeHeader auth={auth} listHref={listHref} />
-
-                <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+            <MarketShell auth={auth} listHref={listHref}>
+                <main className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
                     <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <Link href="/" className="hover:text-[#1565C0]">
                             Home
@@ -65,7 +62,7 @@ export default function ListingMessage({
                         </Link>
                         <span>/</span>
                         <Link
-                            href={`/market/${listing.id}`}
+                            href={`/market/${listing.slug}`}
                             className="hover:text-[#1565C0]"
                         >
                             {listing.title}
@@ -78,7 +75,7 @@ export default function ListingMessage({
 
                     <div className="mb-6">
                         <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/market/${listing.id}`}>
+                            <Link href={`/market/${listing.slug}`}>
                                 <ArrowLeft className="size-4" />
                                 Back to listing
                             </Link>
@@ -97,7 +94,7 @@ export default function ListingMessage({
                                 {formatPrice(listing.asking_price)}
                             </p>
                             <Link
-                                href={`/market/${listing.id}`}
+                                href={`/market/${listing.slug}`}
                                 className="mt-2 inline-block text-sm text-[#1565C0] hover:underline dark:text-[#90caf9]"
                             >
                                 View listing details
@@ -183,9 +180,7 @@ export default function ListingMessage({
                         </form>
                     </div>
                 </main>
-
-                <HomeFooter />
-            </div>
+            </MarketShell>
         </>
     );
 }

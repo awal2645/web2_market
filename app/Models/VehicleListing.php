@@ -7,11 +7,14 @@ use Database\Factories\VehicleListingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 #[Fillable([
     'user_id',
+    'slug',
     'year',
     'make',
     'model',
@@ -36,6 +39,78 @@ class VehicleListing extends Model
 {
     /** @use HasFactory<VehicleListingFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::creating(function (VehicleListing $listing): void {
+            if (blank($listing->slug)) {
+                $listing->slug = static::generateUniqueSlug($listing);
+            }
+        });
+
+        static::updating(function (VehicleListing $listing): void {
+            if ($listing->isDirty(['year', 'make', 'model', 'trim'])) {
+                $listing->slug = static::generateUniqueSlug($listing);
+            }
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /**
+     * @param  mixed  $value
+     * @param  string|null  $field
+     */
+    public function resolveRouteBinding($value, $field = null): Model
+    {
+        if (is_numeric($value)) {
+            $listing = static::query()->whereKey($value)->first();
+
+            if ($listing) {
+                return $listing;
+            }
+        }
+
+        $listing = static::query()->where('slug', $value)->first();
+
+        if ($listing) {
+            return $listing;
+        }
+
+        throw (new ModelNotFoundException)->setModel(static::class, [$value]);
+    }
+
+    public static function generateUniqueSlug(VehicleListing $listing): string
+    {
+        $base = Str::slug(implode(' ', array_filter([
+            (string) $listing->year,
+            $listing->make,
+            $listing->model,
+            $listing->trim,
+        ])));
+
+        if ($base === '') {
+            $base = 'listing';
+        }
+
+        $slug = $base;
+        $counter = 2;
+
+        while (
+            static::query()
+                ->where('slug', $slug)
+                ->when($listing->exists, fn ($query) => $query->whereKeyNot($listing->id))
+                ->exists()
+        ) {
+            $slug = "{$base}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
+    }
 
     /**
      * @return array<string, string>

@@ -29,6 +29,7 @@ export type Message = {
 
 export type ConversationListing = {
     id: number;
+    slug: string;
     title: string;
 };
 

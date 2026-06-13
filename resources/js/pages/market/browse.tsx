@@ -1,8 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { useState } from 'react';
-import { HomeFooter } from '@/components/market/home/footer';
-import { HomeHeader } from '@/components/market/home/header-hero';
+import { MarketShell } from '@/components/market/home/market-shell';
 import { HomeListingCard } from '@/components/market/home/listing-card';
 import {
     Sheet,
@@ -101,10 +100,8 @@ export default function Browse({
         <>
             <Head title="Browse Vehicles" />
 
-            <div className="min-h-screen bg-background">
-                <HomeHeader auth={auth} listHref={listHref} />
-
-                <div className="mx-auto max-w-7xl px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:pb-8">
+            <MarketShell auth={auth} listHref={listHref}>
+                <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
                     <div className="mb-6">
                         <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
                             Browse Vehicles
@@ -181,7 +178,7 @@ export default function Browse({
                 </div>
 
                 {/* Mobile floating filters button */}
-                <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center pb-4 lg:hidden">
+                <div className="fixed inset-x-0 bottom-16 z-40 flex justify-center pb-2 md:hidden">
                     <button
                         type="button"
                         onClick={() => setFiltersOpen(true)}
@@ -225,9 +222,7 @@ export default function Browse({
                         </div>
                     </SheetContent>
                 </Sheet>
-
-                <HomeFooter />
-            </div>
+            </MarketShell>
         </>
     );
 }

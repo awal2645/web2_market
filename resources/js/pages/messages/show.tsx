@@ -126,7 +126,7 @@ export default function MessagesShow({
                         </p>
                         {conversation.listing && (
                             <Link
-                                href={`/market/${conversation.listing.id}`}
+                                href={`/market/${conversation.listing.slug}`}
                                 className="truncate text-sm text-[#1565C0] hover:underline dark:text-[#90caf9]"
                             >
                                 {conversation.listing.title}

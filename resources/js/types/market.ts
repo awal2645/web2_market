@@ -5,6 +5,7 @@ export type VehicleListingImage = {
 
 export type VehicleListing = {
     id: number;
+    slug: string;
     title: string;
     year: number;
     make: string;
@@ -30,6 +31,7 @@ export type VehicleListing = {
     created_at: string | null;
     seller_id?: string;
     seller_name?: string;
+    seller_avatar?: string | null;
 };
 
 export type ListingFormOptions = {

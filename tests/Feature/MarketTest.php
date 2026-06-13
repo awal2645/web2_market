@@ -118,8 +118,20 @@ test('approved listing detail page can be viewed publicly', function () {
     $response->assertInertia(fn ($page) => $page
         ->component('listings/show')
         ->where('listing.id', $listing->id)
+        ->where('listing.slug', $listing->slug)
         ->where('isOwner', false)
     );
+});
+
+test('listing detail page redirects numeric id urls to slug', function () {
+    $listing = VehicleListing::factory()->approved()->create([
+        'year' => 2020,
+        'make' => 'Toyota',
+        'model' => 'Camry',
+    ]);
+
+    $this->get("/market/{$listing->id}")
+        ->assertRedirect(route('listings.show', $listing));
 });
 
 test('users can submit a vehicle listing with images', function () {

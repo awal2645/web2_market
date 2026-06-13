@@ -136,6 +136,49 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         return $this->hasMany(VehicleListing::class);
     }
 
+    /**
+     * @return HasMany<SellerReview, $this>
+     */
+    public function sellerReviews(): HasMany
+    {
+        return $this->hasMany(SellerReview::class, 'seller_id');
+    }
+
+    /**
+     * @return HasMany<SellerReview, $this>
+     */
+    public function reviewsWritten(): HasMany
+    {
+        return $this->hasMany(SellerReview::class, 'reviewer_id');
+    }
+
+    public function averageRating(): ?float
+    {
+        $average = $this->sellerReviews()->avg('rating');
+
+        return $average !== null ? round((float) $average, 1) : null;
+    }
+
+    public function reviewCount(): int
+    {
+        return $this->sellerReviews()->count();
+    }
+
+    public function hasConversationWith(string $userId): bool
+    {
+        return Conversation::query()
+            ->where(function ($query) use ($userId): void {
+                $query->where(function ($inner) use ($userId): void {
+                    $inner->where('participant_one_id', $this->id)
+                        ->where('participant_two_id', $userId);
+                })->orWhere(function ($inner) use ($userId): void {
+                    $inner->where('participant_one_id', $userId)
+                        ->where('participant_two_id', $this->id);
+                });
+            })
+            ->exists();
+    }
+
     public function unreadMessagesCount(): int
     {
         return Message::query()

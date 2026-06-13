@@ -150,6 +150,7 @@ export type DisplayListing = {
 
 type ApiListing = {
     id: number;
+    slug: string;
     title: string;
     trim?: string | null;
     mileage: number;
@@ -175,7 +176,7 @@ export function vehicleListingToDisplay(listing: ApiListing): DisplayListing {
         asking_price: listing.asking_price,
         image:
             listing.images?.[0]?.url ?? '/images/demo-vehicles/car-2.jpg',
-        href: `/market/${listing.id}`,
+        href: `/market/${listing.slug}`,
     };
 }
 

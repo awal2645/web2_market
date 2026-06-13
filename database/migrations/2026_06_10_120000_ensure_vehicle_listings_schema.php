@@ -97,6 +97,10 @@ return new class extends Migration
                 $table->string('status')->default('pending');
             }
 
+            if (! Schema::hasColumn('vehicle_listings', 'slug')) {
+                $table->string('slug')->nullable();
+            }
+
             if (! Schema::hasColumn('vehicle_listings', 'created_at')) {
                 $table->timestamp('created_at')->nullable();
             }

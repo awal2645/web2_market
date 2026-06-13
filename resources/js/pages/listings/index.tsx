@@ -337,7 +337,7 @@ export default function MyListings({ listings, filters, counts }: Props) {
                                                         asChild
                                                     >
                                                         <Link
-                                                            href={`/market/${listing.id}`}
+                                                            href={`/market/${listing.slug}`}
                                                         >
                                                             View
                                                         </Link>

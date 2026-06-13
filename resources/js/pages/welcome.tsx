@@ -1,10 +1,9 @@
 import { Head, usePage } from '@inertiajs/react';
 import { FeaturedSection } from '@/components/market/home/featured-section';
-import { HomeFooter } from '@/components/market/home/footer';
 import {
-    HomeHeader,
     HomeHero,
 } from '@/components/market/home/header-hero';
+import { MarketShell } from '@/components/market/home/market-shell';
 import { HomeSearchBar } from '@/components/market/home/search-bar';
 import {
     CategoriesSection,
@@ -35,8 +34,7 @@ export default function Welcome({ listings = [], filterOptions }: Props) {
         <>
             <Head title="Web2Autos.com — Buy. Sell. Finance." />
 
-            <div className="min-h-screen bg-background font-sans text-foreground antialiased">
-                <HomeHeader auth={auth} listHref={listHref} />
+            <MarketShell auth={auth} listHref={listHref}>
                 <HomeHero listHref={listHref} />
                 <HomeSearchBar filterOptions={filterOptions} />
                 <FeaturedSection
@@ -67,9 +65,7 @@ export default function Welcome({ listings = [], filterOptions }: Props) {
                         </a>
                     </div>
                 </section>
-
-                <HomeFooter />
-            </div>
+            </MarketShell>
         </>
     );
 }

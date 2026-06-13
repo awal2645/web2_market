@@ -458,7 +458,7 @@ function ListingSuccessStep({
                     asChild
                     className="bg-[#1565C0] hover:bg-[#0D47A1]"
                 >
-                    <Link href={`/market/${listing.id}`}>View Listing</Link>
+                    <Link href={`/market/${listing.slug}`}>View Listing</Link>
                 </Button>
                 <Button asChild variant="outline">
                     <Link href="/dashboard">Dashboard</Link>

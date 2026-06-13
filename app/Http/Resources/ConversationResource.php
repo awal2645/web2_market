@@ -38,6 +38,7 @@ class ConversationResource
             'other_user' => UserResource::make($otherUser),
             'listing' => $conversation->vehicleListing ? [
                 'id' => $conversation->vehicleListing->id,
+                'slug' => $conversation->vehicleListing->slug,
                 'title' => $conversation->vehicleListing->title(),
             ] : null,
             'last_message' => $latestMessage ? MessageResource::make($latestMessage) : null,

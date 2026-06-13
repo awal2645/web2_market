@@ -16,8 +16,11 @@ class VehicleListingResource
 
         return [
             'id' => $listing->id,
+            'slug' => $listing->slug,
             'title' => $listing->title(),
             'seller_id' => $listing->user_id,
+            'seller_name' => $listing->relationLoaded('user') ? ($listing->user?->name) : null,
+            'seller_avatar' => $listing->relationLoaded('user') ? ($listing->user?->avatar) : null,
             'year' => $listing->year,
             'make' => $listing->make,
             'model' => $listing->model,

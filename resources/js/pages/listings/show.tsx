@@ -4,18 +4,14 @@ import {
     Car,
     Fuel,
     Gauge,
-    Mail,
     MapPin,
-    MessageSquare,
-    Phone,
     Settings2,
 } from 'lucide-react';
 import { useState } from 'react';
-import { HomeFooter } from '@/components/market/home/footer';
-import { HomeHeader } from '@/components/market/home/header-hero';
+import { SellerContactCard } from '@/components/sellers/seller-contact-card';
+import { MarketShell } from '@/components/market/home/market-shell';
 import { HomeListingCard } from '@/components/market/home/listing-card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
     estimateMonthlyPayment,
     formatMileage,
@@ -25,6 +21,7 @@ import {
 import { register } from '@/routes';
 import type { Auth } from '@/types';
 import type { VehicleListing } from '@/types/market';
+import type { SellerRatingStats } from '@/types/sellers';
 
 type Props = {
     listing: VehicleListing;
@@ -37,6 +34,8 @@ type Props = {
         last_message_at: string | null;
     } | null;
     messageUrl?: string;
+    sellerProfileUrl?: string | null;
+    sellerRating?: SellerRatingStats | null;
 };
 
 export default function ShowListing({
@@ -45,6 +44,8 @@ export default function ShowListing({
     isOwner,
     messageConversation,
     messageUrl,
+    sellerProfileUrl,
+    sellerRating,
 }: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const listHref = auth.user ? '/listings/create' : register();
@@ -76,10 +77,8 @@ export default function ShowListing({
         <>
             <Head title={listing.title} />
 
-            <div className="min-h-screen bg-background">
-                <HomeHeader auth={auth} listHref={listHref} />
-
-                <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <MarketShell auth={auth} listHref={listHref}>
+                <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
                     <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <Link href="/" className="hover:text-[#1565C0]">
                             Home
@@ -231,96 +230,18 @@ export default function ShowListing({
                                 />
                             </div>
 
-                            <section className="rounded-2xl border border-border bg-card p-6 shadow-sm lg:sticky lg:top-[22rem]">
-                                <h2 className="text-lg font-semibold text-foreground">
-                                    Contact Seller
-                                </h2>
-                                <dl className="mt-4 space-y-3 text-sm">
-                                    <Detail label="Name" value={listing.contact_name} />
-                                    <Detail label="Email" value={listing.contact_email} />
-                                    <Detail label="Phone" value={listing.contact_phone} />
-                                </dl>
-
-                                {messageConversation && (
-                                    <div className="mt-6 rounded-xl border border-[#1565C0]/20 bg-blue-50/60 p-4 dark:border-blue-800 dark:bg-blue-950/30">
-                                        <p className="text-xs font-medium tracking-wide text-[#1565C0] uppercase dark:text-[#90caf9]">
-                                            Your conversation
-                                        </p>
-                                        <p className="mt-2 line-clamp-2 text-sm text-foreground">
-                                            {messageConversation.last_message ??
-                                                'No messages yet'}
-                                        </p>
-                                        <Button
-                                            className="mt-3 w-full bg-[#1565C0] hover:bg-[#0D47A1]"
-                                            asChild
-                                        >
-                                            <Link href={messageConversation.url}>
-                                                <MessageSquare className="size-4" />
-                                                View Messages
-                                            </Link>
-                                        </Button>
-                                    </div>
-                                )}
-
-                                <div className="mt-6 space-y-2">
-                                    {!isOwner && listing.seller_id && messageUrl && (
-                                        <Button
-                                            className="w-full bg-[#1565C0] hover:bg-[#0D47A1]"
-                                            asChild
-                                        >
-                                            <Link href={messageUrl}>
-                                                <MessageSquare className="size-4" />
-                                                {messageConversation
-                                                    ? 'Continue Message'
-                                                    : 'Message Seller'}
-                                            </Link>
-                                        </Button>
-                                    )}
-                                    <Button
-                                        className="w-full bg-[#1565C0] hover:bg-[#0D47A1]"
-                                        variant={
-                                            !isOwner &&
-                                            listing.seller_id &&
-                                            messageUrl
-                                                ? 'outline'
-                                                : 'default'
-                                        }
-                                        asChild
-                                    >
-                                        <a href={`mailto:${listing.contact_email}?subject=${encodeURIComponent(`Interested in ${listing.title}`)}`}>
-                                            <Mail className="size-4" />
-                                            Email Seller
-                                        </a>
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        asChild
-                                    >
-                                        <a href={`tel:${listing.contact_phone}`}>
-                                            <Phone className="size-4" />
-                                            Call Seller
-                                        </a>
-                                    </Button>
-                                </div>
-                                {isOwner && (
-                                    <p className="mt-4 text-center text-xs text-muted-foreground">
-                                        This is your listing.{' '}
-                                        <Link
-                                            href="/listings"
-                                            className="font-medium text-[#1565C0] hover:underline"
-                                        >
-                                            Manage in My Listings
-                                        </Link>
-                                    </p>
-                                )}
-                            </section>
+                            <SellerContactCard
+                                listing={listing}
+                                isOwner={isOwner}
+                                sellerProfileUrl={sellerProfileUrl}
+                                sellerRating={sellerRating}
+                                messageUrl={messageUrl}
+                                messageConversation={messageConversation}
+                            />
                         </div>
                     </div>
                 </main>
-
-                <HomeFooter />
-            </div>
+            </MarketShell>
         </>
     );
 }

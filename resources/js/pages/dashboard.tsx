@@ -266,7 +266,7 @@ export default function Dashboard({
                                                 asChild
                                             >
                                                 <Link
-                                                    href={`/market/${listing.id}`}
+                                                    href={`/market/${listing.slug}`}
                                                 >
                                                     View
                                                 </Link>
