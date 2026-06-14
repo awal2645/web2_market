@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\VehicleListingForeignKey;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -77,16 +78,19 @@ return new class extends Migration
         if (! Schema::hasTable('listing_reports')) {
             Schema::create('listing_reports', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('vehicle_listing_id')->constrained('vehicle_listings')->cascadeOnDelete();
+                VehicleListingForeignKey::addColumn($table, 'vehicle_listing_id');
                 $table->string('user_id', 191)->nullable();
                 $table->string('reason');
                 $table->text('details')->nullable();
                 $table->string('status')->default('open');
                 $table->timestamps();
 
+                VehicleListingForeignKey::addForeignKey($table, 'vehicle_listing_id', 'cascade');
                 $table->foreign('user_id')->references('id')->on('customer_users')->nullOnDelete();
                 $table->index(['vehicle_listing_id', 'status']);
             });
+        } else {
+            VehicleListingForeignKey::ensureForeignKey('listing_reports', 'vehicle_listing_id', false, 'cascade');
         }
     }
 

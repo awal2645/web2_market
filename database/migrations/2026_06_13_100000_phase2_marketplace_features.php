@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\VehicleListingForeignKey;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -32,12 +33,15 @@ return new class extends Migration
             Schema::create('saved_listings', function (Blueprint $table) {
                 $table->id();
                 $table->string('user_id', 191);
-                $table->foreignId('vehicle_listing_id')->constrained('vehicle_listings')->cascadeOnDelete();
+                VehicleListingForeignKey::addColumn($table, 'vehicle_listing_id');
                 $table->timestamps();
 
                 $table->unique(['user_id', 'vehicle_listing_id']);
                 $table->index('user_id');
+                VehicleListingForeignKey::addForeignKey($table, 'vehicle_listing_id', 'cascade');
             });
+        } else {
+            VehicleListingForeignKey::ensureForeignKey('saved_listings', 'vehicle_listing_id', false, 'cascade');
         }
     }
 
