@@ -75,9 +75,44 @@ class VehicleListingForeignKey
             return;
         }
 
+        self::removeOrphanedListingReferences($tableName, $columnName, $nullable);
+
         Schema::table($tableName, function (Blueprint $table) use ($columnName, $onDelete): void {
             self::addForeignKey($table, $columnName, $onDelete);
         });
+    }
+
+    public static function removeOrphanedListingReferences(
+        string $tableName,
+        string $columnName,
+        bool $nullable,
+    ): void {
+        if (! Schema::hasTable($tableName) || ! Schema::hasColumn($tableName, $columnName)) {
+            return;
+        }
+
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
+        if ($nullable) {
+            DB::statement(
+                "UPDATE `{$tableName}` AS child
+                 LEFT JOIN `vehicle_listings` AS listings ON child.`{$columnName}` = listings.`id`
+                 SET child.`{$columnName}` = NULL
+                 WHERE child.`{$columnName}` IS NOT NULL
+                   AND listings.`id` IS NULL",
+            );
+
+            return;
+        }
+
+        DB::statement(
+            "DELETE child FROM `{$tableName}` AS child
+             LEFT JOIN `vehicle_listings` AS listings ON child.`{$columnName}` = listings.`id`
+             WHERE child.`{$columnName}` IS NOT NULL
+               AND listings.`id` IS NULL",
+        );
     }
 
     public static function alignExistingColumn(string $tableName, string $columnName, bool $nullable): void
