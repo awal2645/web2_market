@@ -16,7 +16,7 @@ class VehicleListingResource
 
         return [
             'id' => $listing->id,
-            'slug' => $listing->slug,
+            'slug' => $listing->ensureSlug(),
             'title' => $listing->title(),
             'seller_id' => $listing->user_id,
             'seller_name' => $listing->relationLoaded('user') ? ($listing->user?->name) : null,

@@ -48,17 +48,25 @@ class VehicleListing extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (VehicleListing $listing): void {
-            if (blank($listing->slug)) {
+        static::saving(function (VehicleListing $listing): void {
+            if (blank($listing->slug) || $listing->isDirty(['year', 'make', 'model', 'trim'])) {
                 $listing->slug = static::generateUniqueSlug($listing);
             }
         });
+    }
 
-        static::updating(function (VehicleListing $listing): void {
-            if ($listing->isDirty(['year', 'make', 'model', 'trim'])) {
-                $listing->slug = static::generateUniqueSlug($listing);
-            }
-        });
+    /** Persist a slug for rows created outside Eloquent (e.g. Next.js/Prisma seeds). */
+    public function ensureSlug(): string
+    {
+        if (! blank($this->slug)) {
+            return $this->slug;
+        }
+
+        $this->forceFill([
+            'slug' => static::generateUniqueSlug($this),
+        ])->saveQuietly();
+
+        return (string) $this->slug;
     }
 
     public function getRouteKeyName(): string

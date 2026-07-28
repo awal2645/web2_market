@@ -99,10 +99,14 @@ NOTES;
 
         if ($listing) {
             $listing->images()->delete();
-            $listing->update($data);
+            $listing->fill($data);
+            $listing->slug = VehicleListing::generateUniqueSlug($listing);
+            $listing->save();
         } else {
             $listing = VehicleListing::query()->create($data);
         }
+
+        $listing->ensureSlug();
 
         foreach ($images as $index => $path) {
             VehicleListingImage::query()->create([

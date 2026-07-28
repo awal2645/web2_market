@@ -182,7 +182,7 @@ export function vehicleListingToDisplay(listing: ApiListing): DisplayListing {
         location_label: listing.location_label,
         image:
             listing.images?.[0]?.url ?? '/images/demo-vehicles/car-2.jpg',
-        href: `/market/${listing.slug}`,
+        href: `/market/${listing.slug || listing.id}`,
     };
 }
 
