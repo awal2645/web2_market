@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             VehicleListingSeeder::class,
             CarsComListingSeeder::class,
+            SignatureLexusEs300Seeder::class,
         ]);
     }
 }
