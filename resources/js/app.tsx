@@ -18,6 +18,11 @@ createInertiaApp({
             case name === 'listings/message':
             case name === 'sellers/show':
             case name === 'market/browse':
+            case name === 'compare/index':
+            case name === 'saved/index':
+            case name === 'legal/privacy':
+            case name === 'legal/terms':
+            case name === 'legal/contact':
                 return null;
             case name === 'auth/login':
             case name === 'auth/register':
