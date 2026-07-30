@@ -18,7 +18,7 @@ export default function ComparePage({ listings, maxItems }: Props) {
         auth: Auth;
         compareListingIds: number[];
     }>().props;
-    const listHref = auth.user ? '/listings/create' : register();
+    const listHref = auth.user ? '/listings/create' : register.url();
 
     const clearAll = () => {
         router.post('/compare/clear');

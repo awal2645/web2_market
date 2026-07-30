@@ -16,7 +16,7 @@ type Props = {
 
 export default function SavedListingsPage({ listings }: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
-    const listHref = auth.user ? '/listings/create' : register();
+    const listHref = auth.user ? '/listings/create' : register.url();
 
     const togglePriceAlerts = (listing: VehicleListing, enabled: boolean) => {
         router.patch(

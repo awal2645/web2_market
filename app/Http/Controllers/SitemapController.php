@@ -23,6 +23,24 @@ class SitemapController extends Controller
                 'changefreq' => 'daily',
                 'priority' => '0.9',
             ],
+            [
+                'loc' => route('privacy'),
+                'lastmod' => now()->toAtomString(),
+                'changefreq' => 'yearly',
+                'priority' => '0.3',
+            ],
+            [
+                'loc' => route('terms'),
+                'lastmod' => now()->toAtomString(),
+                'changefreq' => 'yearly',
+                'priority' => '0.3',
+            ],
+            [
+                'loc' => route('contact'),
+                'lastmod' => now()->toAtomString(),
+                'changefreq' => 'monthly',
+                'priority' => '0.5',
+            ],
         ];
 
         VehicleListing::query()

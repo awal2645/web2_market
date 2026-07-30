@@ -125,6 +125,24 @@ export default function Register({ passwordRules }: Props) {
                             </Button>
                         </div>
 
+                        <p className="text-center text-xs leading-relaxed text-muted-foreground">
+                            By creating an account you agree to our{' '}
+                            <TextLink
+                                href="/terms"
+                                className="font-semibold text-[#1565C0] no-underline hover:underline"
+                            >
+                                Terms of Service
+                            </TextLink>{' '}
+                            and{' '}
+                            <TextLink
+                                href="/privacy"
+                                className="font-semibold text-[#1565C0] no-underline hover:underline"
+                            >
+                                Privacy Policy
+                            </TextLink>
+                            .
+                        </p>
+
                         <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
                             <TextLink

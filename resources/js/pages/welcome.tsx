@@ -1,4 +1,4 @@
-import { usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { FeaturedSection } from '@/components/market/home/featured-section';
 import {
     HomeHero,
@@ -32,7 +32,8 @@ type Props = {
 
 export default function Welcome({ listings = [], filterOptions }: Props) {
     const { auth, seo } = usePage<{ auth: Auth; seo: SeoDefaults }>().props;
-    const listHref = auth.user ? '/listings/create' : register();
+    // Must be a string — plain <a href> cannot take Wayfinder {url,method} objects.
+    const listHref = auth.user ? '/listings/create' : register.url();
     const displayListings = resolveFeaturedListings(listings);
     const usingSavedListings = listings.length > 0;
 
@@ -75,12 +76,12 @@ export default function Welcome({ listings = [], filterOptions }: Props) {
                             List free in minutes. Reach thousands of buyers and
                             skip the lowball trade-in offers.
                         </p>
-                        <a
+                        <Link
                             href={listHref}
                             className="mt-6 inline-block rounded-lg bg-white px-8 py-3.5 text-sm font-bold text-[#1565C0] shadow-lg transition hover:bg-blue-50 dark:bg-card dark:hover:bg-muted/50"
                         >
                             Post Your Car — It&apos;s Free
-                        </a>
+                        </Link>
                     </div>
                 </section>
             </MarketShell>

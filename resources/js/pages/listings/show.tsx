@@ -61,7 +61,7 @@ export default function ShowListing({
     canMarkSold = false,
 }: Props) {
     const { auth, seo } = usePage<{ auth: Auth; seo: SeoDefaults }>().props;
-    const listHref = auth.user ? '/listings/create' : register();
+    const listHref = auth.user ? '/listings/create' : register.url();
     const [activeImage, setActiveImage] = useState(0);
 
     const images = listing.images.length

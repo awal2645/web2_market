@@ -54,7 +54,7 @@ export default function SellerProfilePage({
     hasReviewed,
 }: Props) {
     const { auth, seo } = usePage<{ auth: Auth; seo: SeoDefaults }>().props;
-    const listHref = auth.user ? '/listings/create' : register();
+    const listHref = auth.user ? '/listings/create' : register.url();
     const messageHref = messageListingSlug
         ? `/market/${messageListingSlug}/message`
         : undefined;

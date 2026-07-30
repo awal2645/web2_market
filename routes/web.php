@@ -7,6 +7,7 @@ use App\Http\Controllers\CompareController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ListingReportController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\SavedListingController;
@@ -21,6 +22,9 @@ Route::get('auth/sync', AuthSyncController::class)->name('auth.sync');
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('browse/{make?}/{model?}', BrowseController::class)->name('browse');
+Route::get('privacy', [LegalController::class, 'privacy'])->name('privacy');
+Route::get('terms', [LegalController::class, 'terms'])->name('terms');
+Route::get('contact', [LegalController::class, 'contact'])->name('contact');
 Route::get('sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('vin-decode/{vin}', VinDecodeController::class)->name('vin.decode');
 Route::get('compare', [CompareController::class, 'index'])->name('compare.index');

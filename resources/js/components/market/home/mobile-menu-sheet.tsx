@@ -5,6 +5,7 @@ import {
     Landmark,
     LayoutGrid,
     MessageSquare,
+    Phone,
     Plus,
     Scale,
     Search,
@@ -35,6 +36,7 @@ const links = [
     { label: 'My listings', href: '/listings', icon: Car, auth: true },
     { label: 'Messages', href: '/messages', icon: MessageSquare, auth: true },
     { label: 'Post your car', href: null, icon: Plus, highlight: true },
+    { label: 'Contact', href: '/contact', icon: Phone },
 ];
 
 export function MobileMenuSheet({
@@ -102,6 +104,15 @@ export function MobileMenuSheet({
                             Sign in
                         </Link>
                     )}
+
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 px-4 pt-2 text-xs text-muted-foreground">
+                        <Link href="/privacy" onClick={() => onOpenChange(false)} className="hover:text-[#1565C0]">
+                            Privacy Policy
+                        </Link>
+                        <Link href="/terms" onClick={() => onOpenChange(false)} className="hover:text-[#1565C0]">
+                            Terms of Service
+                        </Link>
+                    </div>
                 </div>
             </SheetContent>
         </Sheet>

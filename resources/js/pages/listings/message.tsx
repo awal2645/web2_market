@@ -19,7 +19,7 @@ export default function ListingMessage({
     defaultMessage,
 }: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
-    const listHref = auth.user ? '/listings/create' : registerRoute();
+    const listHref = auth.user ? '/listings/create' : registerRoute.url();
     const [body, setBody] = useState(defaultMessage);
     const [sending, setSending] = useState(false);
 
