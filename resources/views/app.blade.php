@@ -17,6 +17,8 @@
         <meta property="og:url" content="{{ $seoMeta['url'] }}">
         <meta property="og:type" content="{{ $seoMeta['type'] }}">
         <meta property="og:image" content="{{ $seoMeta['image'] }}">
+        <meta property="og:image:width" content="{{ $seoMeta['imageWidth'] }}">
+        <meta property="og:image:height" content="{{ $seoMeta['imageHeight'] }}">
         <meta property="og:site_name" content="{{ $seoMeta['siteName'] }}">
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="{{ $seoMeta['title'] }}">

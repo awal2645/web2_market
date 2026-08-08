@@ -4,6 +4,7 @@ use App\Models\User;
 use App\Models\VehicleListing;
 use App\Models\VehicleListingImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -58,7 +59,11 @@ test('listing pages expose open graph tags for crawlers', function () {
         'make' => 'Honda',
         'model' => 'Accord',
         'trim' => 'EX',
-        'seller_notes' => 'One-owner car in excellent condition.',
+        'city' => 'Los Angeles',
+        'state' => 'CA',
+        'asking_price' => 18500,
+        'mileage' => 45000,
+        'seller_notes' => 'One-owner car.',
     ]);
 
     VehicleListingImage::query()->create([
@@ -68,10 +73,58 @@ test('listing pages expose open graph tags for crawlers', function () {
     ]);
 
     $response = $this->get(route('listings.show', $listing));
+    $ogImage = rtrim(config('app.url'), '/').'/market/'.$listing->slug.'/og.jpg';
 
     $response->assertOk();
     $response->assertSee('<meta property="og:title" content="'.$listing->title().'">', false);
-    $response->assertSee('<meta property="og:image" content="'.rtrim(config('app.url'), '/').'/storage/vehicle-listings/front.jpg">', false);
+    $response->assertSee('<meta property="og:image" content="'.$ogImage.'">', false);
+    $response->assertSee('<meta property="og:image:width" content="1200">', false);
+    $response->assertSee('<meta property="og:image:height" content="630">', false);
     $response->assertSee('<title>'.$listing->title().' - '.config('seo.site_name').'</title>', false);
-    $response->assertSee('One-owner car in excellent condition.', false);
+    $response->assertSee('Listed on Web2Autos Market.', false);
+    $response->assertSee('One-owner car.', false);
+});
+
+test('listing open graph image is resized for social previews', function () {
+    Storage::fake('public');
+
+    $listing = VehicleListing::factory()->approved()->create([
+        'year' => 2013,
+        'make' => 'Honda',
+        'model' => 'Accord',
+        'trim' => 'LX',
+    ]);
+
+    $image = imagecreatetruecolor(800, 800);
+    $gray = imagecolorallocate($image, 120, 120, 120);
+    imagefilledrectangle($image, 0, 0, 799, 799, $gray);
+    ob_start();
+    imagejpeg($image, null, 90);
+    $binary = ob_get_clean();
+    imagedestroy($image);
+
+    Storage::disk('public')->put('vehicle-listings/square.jpg', $binary);
+
+    VehicleListingImage::query()->create([
+        'vehicle_listing_id' => $listing->id,
+        'path' => 'vehicle-listings/square.jpg',
+        'sort_order' => 0,
+    ]);
+
+    $response = $this->get(route('listings.og-image', $listing));
+
+    $response->assertOk();
+    $response->assertHeader('Content-Type', 'image/jpeg');
+
+    $fileResponse = $response->baseResponse;
+    expect($fileResponse)->toBeInstanceOf(Symfony\Component\HttpFoundation\BinaryFileResponse::class);
+
+    $path = $fileResponse->getFile()->getPathname();
+    expect($path)->toContain('og-cache');
+
+    $generated = imagecreatefromjpeg($path);
+    expect($generated)->not->toBeFalse();
+    expect(imagesx($generated))->toBe(1200);
+    expect(imagesy($generated))->toBe(630);
+    imagedestroy($generated);
 });

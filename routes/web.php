@@ -8,6 +8,7 @@ use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\ListingOgImageController;
 use App\Http\Controllers\ListingReportController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\SavedListingController;
@@ -31,6 +32,7 @@ Route::get('compare', [CompareController::class, 'index'])->name('compare.index'
 Route::post('compare/clear', [CompareController::class, 'clear'])->name('compare.clear');
 Route::post('compare/{listing}', [CompareController::class, 'store'])->name('compare.store');
 Route::delete('compare/{listing}', [CompareController::class, 'destroy'])->name('compare.destroy');
+Route::get('market/{listing}/og.jpg', ListingOgImageController::class)->name('listings.og-image');
 Route::get('market/{listing}', [VehicleListingController::class, 'show'])->name('listings.show');
 Route::post('market/{listing}/report', [ListingReportController::class, 'store'])->name('listings.report');
 Route::get('sellers/{seller}', [SellerProfileController::class, 'show'])->name('sellers.show');

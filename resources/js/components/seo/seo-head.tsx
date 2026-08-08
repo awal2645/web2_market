@@ -9,6 +9,8 @@ type Props = {
     description?: string;
     path: string;
     image?: string | null;
+    imageWidth?: number;
+    imageHeight?: number;
     type?: 'website' | 'product' | 'profile';
     noindex?: boolean;
     jsonLd?: JsonLd | JsonLd[];
@@ -19,6 +21,8 @@ export function SeoHead({
     description,
     path,
     image,
+    imageWidth = 1200,
+    imageHeight = 630,
     type = 'website',
     noindex = false,
     jsonLd,
@@ -65,6 +69,16 @@ export function SeoHead({
             <meta head-key="og:url" property="og:url" content={canonical} />
             <meta head-key="og:type" property="og:type" content={ogType} />
             <meta head-key="og:image" property="og:image" content={ogImage} />
+            <meta
+                head-key="og:image:width"
+                property="og:image:width"
+                content={String(imageWidth)}
+            />
+            <meta
+                head-key="og:image:height"
+                property="og:image:height"
+                content={String(imageHeight)}
+            />
             <meta
                 head-key="og:site_name"
                 property="og:site_name"

@@ -88,9 +88,18 @@ export default function ShowListing({
         { icon: Calendar, label: 'Title', value: listing.title_status },
     ];
 
-    const listingDescription =
-        listing.seller_notes?.trim() ||
-        `${listing.title} for ${formatPrice(listing.asking_price)} with ${formatMileage(listing.mileage)} miles. ${listing.transmission}, ${listing.fuel_type}, ${listing.drivetrain}.`;
+    const location = listing.location_label?.trim();
+    const notes = listing.seller_notes?.trim();
+    const listingDescription = [
+        `${listing.title} for ${formatPrice(listing.asking_price)} with ${formatMileage(listing.mileage)} miles${location ? ` in ${location}` : ''}.`,
+        [listing.condition, listing.transmission, listing.fuel_type]
+            .filter(Boolean)
+            .join(', ') + '.',
+        notes,
+        'Listed on Web2Autos Market.',
+    ]
+        .filter(Boolean)
+        .join(' ');
 
     return (
         <>
@@ -98,7 +107,13 @@ export default function ShowListing({
                 title={listing.title}
                 description={listingDescription}
                 path={`/market/${listing.slug}`}
-                image={images[0]?.url}
+                image={
+                    listing.images.length
+                        ? `/market/${listing.slug}/og.jpg`
+                        : images[0]?.url
+                }
+                imageWidth={1200}
+                imageHeight={630}
                 type="product"
                 jsonLd={[
                     buildVehicleListingSchema(seo.appUrl, listing),

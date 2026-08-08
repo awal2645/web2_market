@@ -13,6 +13,8 @@ class SeoMeta
      *     documentTitle: string,
      *     description: string,
      *     image: string,
+     *     imageWidth: int,
+     *     imageHeight: int,
      *     url: string,
      *     type: string,
      *     siteName: string
@@ -28,6 +30,8 @@ class SeoMeta
             'documentTitle' => $siteName,
             'description' => self::truncate((string) config('seo.default_description')),
             'image' => self::absoluteUrl($appUrl, (string) config('seo.default_image')),
+            'imageWidth' => OpenGraphImage::WIDTH,
+            'imageHeight' => OpenGraphImage::HEIGHT,
             'url' => self::absoluteUrl($appUrl, $path),
             'type' => 'website',
             'siteName' => $siteName,
@@ -43,12 +47,53 @@ class SeoMeta
     }
 
     /**
+     * Build a share/search description that stays in the useful length range.
+     *
+     * @param  array<string, mixed>  $listing
+     */
+    public static function listingDescription(array $listing): string
+    {
+        $title = trim((string) ($listing['title'] ?? 'Vehicle'));
+        $price = number_format((float) ($listing['asking_price'] ?? 0));
+        $mileage = number_format((int) ($listing['mileage'] ?? 0));
+        $location = trim(implode(', ', array_filter([
+            trim((string) ($listing['city'] ?? '')),
+            trim((string) ($listing['state'] ?? '')),
+        ])));
+        $notes = trim((string) ($listing['seller_notes'] ?? ''));
+        $transmission = trim((string) ($listing['transmission'] ?? ''));
+        $fuel = trim((string) ($listing['fuel_type'] ?? ''));
+        $condition = trim((string) ($listing['condition'] ?? ''));
+
+        $summary = "{$title} for \${$price} with {$mileage} miles";
+        if ($location !== '') {
+            $summary .= " in {$location}";
+        }
+        $summary .= '.';
+
+        $details = array_values(array_filter([$condition, $transmission, $fuel]));
+        if ($details !== []) {
+            $summary .= ' '.implode(', ', $details).'.';
+        }
+
+        if ($notes !== '') {
+            $summary .= ' '.$notes;
+        }
+
+        $summary .= ' Listed on Web2Autos Market.';
+
+        return self::truncate($summary);
+    }
+
+    /**
      * @param  array<string, mixed>  $props
      * @param  array{
      *     title: string,
      *     documentTitle: string,
      *     description: string,
      *     image: string,
+     *     imageWidth: int,
+     *     imageHeight: int,
      *     url: string,
      *     type: string,
      *     siteName: string
@@ -58,6 +103,8 @@ class SeoMeta
      *     documentTitle: string,
      *     description: string,
      *     image: string,
+     *     imageWidth: int,
+     *     imageHeight: int,
      *     url: string,
      *     type: string,
      *     siteName: string
@@ -76,28 +123,20 @@ class SeoMeta
             $title = $defaults['title'];
         }
 
-        $notes = trim((string) ($listing['seller_notes'] ?? ''));
-        $price = number_format((float) ($listing['asking_price'] ?? 0));
-        $mileage = number_format((int) ($listing['mileage'] ?? 0));
-        $description = $notes !== ''
-            ? $notes
-            : "{$title} for \${$price} with {$mileage} miles.";
-
-        $images = is_array($listing['images'] ?? null) ? $listing['images'] : [];
-        $firstImage = is_array($images[0] ?? null) ? ($images[0]['url'] ?? null) : null;
-        $image = is_string($firstImage) && $firstImage !== ''
-            ? self::absoluteUrl($appUrl, $firstImage)
-            : $defaults['image'];
-
         $slug = (string) ($listing['slug'] ?? '');
-        $path = $slug !== '' ? "/market/{$slug}" : ($defaults['url']);
+        $path = $slug !== '' ? "/market/{$slug}" : '/';
+        $hasImages = is_array($listing['images'] ?? null) && ($listing['images'][0]['url'] ?? null);
 
         return [
             'title' => $title,
             'documentTitle' => "{$title} - {$siteName}",
-            'description' => self::truncate($description),
-            'image' => $image,
-            'url' => self::absoluteUrl($appUrl, is_string($path) ? $path : '/'),
+            'description' => self::listingDescription($listing),
+            'image' => $slug !== '' && $hasImages
+                ? self::absoluteUrl($appUrl, "/market/{$slug}/og.jpg")
+                : $defaults['image'],
+            'imageWidth' => OpenGraphImage::WIDTH,
+            'imageHeight' => OpenGraphImage::HEIGHT,
+            'url' => self::absoluteUrl($appUrl, $path),
             'type' => 'product',
             'siteName' => $siteName,
         ];
@@ -110,6 +149,8 @@ class SeoMeta
      *     documentTitle: string,
      *     description: string,
      *     image: string,
+     *     imageWidth: int,
+     *     imageHeight: int,
      *     url: string,
      *     type: string,
      *     siteName: string
@@ -119,6 +160,8 @@ class SeoMeta
      *     documentTitle: string,
      *     description: string,
      *     image: string,
+     *     imageWidth: int,
+     *     imageHeight: int,
      *     url: string,
      *     type: string,
      *     siteName: string
@@ -135,7 +178,7 @@ class SeoMeta
         $name = trim((string) ($seller['name'] ?? 'Seller'));
         $title = "{$name} — Seller";
         $count = (int) ($seller['active_listing_count'] ?? 0);
-        $description = "{$name} on Web2Autos — {$count} active vehicle listing".($count === 1 ? '' : 's').'.';
+        $description = "{$name} on Web2Autos — {$count} active vehicle listing".($count === 1 ? '' : 's').'. Browse their cars, trucks, and SUVs on Web2Autos Market.';
         $avatar = $seller['avatar'] ?? null;
         $image = is_string($avatar) && $avatar !== ''
             ? self::absoluteUrl($appUrl, $avatar)
@@ -147,6 +190,8 @@ class SeoMeta
             'documentTitle' => "{$title} - {$siteName}",
             'description' => self::truncate($description),
             'image' => $image,
+            'imageWidth' => $defaults['imageWidth'],
+            'imageHeight' => $defaults['imageHeight'],
             'url' => self::absoluteUrl($appUrl, $slug !== '' ? "/sellers/{$slug}" : '/'),
             'type' => 'profile',
             'siteName' => $siteName,
