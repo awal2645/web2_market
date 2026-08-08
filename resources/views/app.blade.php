@@ -1,10 +1,27 @@
+@php
+    $seoMeta = \App\Support\SeoMeta::fromInertiaPage($page);
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="description" content="{{ config('seo.default_description') }}">
+
+        {{-- Server-rendered for link previews / crawlers that do not execute JS --}}
+        <title>{{ $seoMeta['documentTitle'] }}</title>
+        <meta name="description" content="{{ $seoMeta['description'] }}">
+        <link rel="canonical" href="{{ $seoMeta['url'] }}">
+        <meta property="og:title" content="{{ $seoMeta['title'] }}">
+        <meta property="og:description" content="{{ $seoMeta['description'] }}">
+        <meta property="og:url" content="{{ $seoMeta['url'] }}">
+        <meta property="og:type" content="{{ $seoMeta['type'] }}">
+        <meta property="og:image" content="{{ $seoMeta['image'] }}">
+        <meta property="og:site_name" content="{{ $seoMeta['siteName'] }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $seoMeta['title'] }}">
+        <meta name="twitter:description" content="{{ $seoMeta['description'] }}">
+        <meta name="twitter:image" content="{{ $seoMeta['image'] }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -40,9 +57,7 @@
 
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
-        <x-inertia::head>
-            <title>{{ config('app.name', 'Laravel') }}</title>
-        </x-inertia::head>
+        <x-inertia::head />
     </head>
     <body class="font-sans antialiased">
         <x-inertia::app />
