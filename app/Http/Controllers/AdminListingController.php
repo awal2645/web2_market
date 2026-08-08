@@ -26,7 +26,7 @@ class AdminListingController extends Controller
             ->map(function (VehicleListing $listing) {
                 return [
                     ...VehicleListingResource::make($listing),
-                    'seller_name' => $listing->user->name,
+                    'seller_name' => $listing->user?->name ?? __('Unknown seller'),
                 ];
             });
 
