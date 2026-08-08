@@ -61,9 +61,6 @@ class SeoMeta
             trim((string) ($listing['state'] ?? '')),
         ])));
         $notes = trim((string) ($listing['seller_notes'] ?? ''));
-        $transmission = trim((string) ($listing['transmission'] ?? ''));
-        $fuel = trim((string) ($listing['fuel_type'] ?? ''));
-        $condition = trim((string) ($listing['condition'] ?? ''));
 
         $summary = "{$title} for \${$price} with {$mileage} miles";
         if ($location !== '') {
@@ -71,18 +68,11 @@ class SeoMeta
         }
         $summary .= '.';
 
-        $details = array_values(array_filter([$condition, $transmission, $fuel]));
-        if ($details !== []) {
-            $summary .= ' '.implode(', ', $details).'.';
-        }
-
         if ($notes !== '') {
             $summary .= ' '.$notes;
         }
 
-        $summary .= ' Listed on Web2Autos Market.';
-
-        return self::truncate($summary);
+        return self::truncate($summary, 120);
     }
 
     /**
@@ -132,7 +122,7 @@ class SeoMeta
             'documentTitle' => "{$title} - {$siteName}",
             'description' => self::listingDescription($listing),
             'image' => $slug !== '' && $hasImages
-                ? self::absoluteUrl($appUrl, "/market/{$slug}/og.jpg")
+                ? self::absoluteUrl($appUrl, '/market/'.$slug.'/og.jpg?v='.OpenGraphImage::VERSION)
                 : $defaults['image'],
             'imageWidth' => OpenGraphImage::WIDTH,
             'imageHeight' => OpenGraphImage::HEIGHT,

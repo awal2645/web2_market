@@ -73,7 +73,7 @@ test('listing pages expose open graph tags for crawlers', function () {
     ]);
 
     $response = $this->get(route('listings.show', $listing));
-    $ogImage = rtrim(config('app.url'), '/').'/market/'.$listing->slug.'/og.jpg';
+    $ogImage = rtrim(config('app.url'), '/').'/market/'.$listing->slug.'/og.jpg?v=2';
 
     $response->assertOk();
     $response->assertSee('<meta property="og:title" content="'.$listing->title().'">', false);
@@ -81,8 +81,8 @@ test('listing pages expose open graph tags for crawlers', function () {
     $response->assertSee('<meta property="og:image:width" content="1200">', false);
     $response->assertSee('<meta property="og:image:height" content="630">', false);
     $response->assertSee('<title>'.$listing->title().' - '.config('seo.site_name').'</title>', false);
-    $response->assertSee('Listed on Web2Autos Market.', false);
     $response->assertSee('One-owner car.', false);
+    $response->assertDontSee('Continuously Variable Transmission', false);
 });
 
 test('listing open graph image is resized for social previews', function () {

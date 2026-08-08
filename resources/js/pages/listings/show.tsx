@@ -28,6 +28,7 @@ import {
     buildListingBreadcrumbSchema,
     buildVehicleListingSchema,
 } from '@/lib/seo-schema';
+import { truncateDescription } from '@/lib/seo';
 import { register } from '@/routes';
 import type { Auth } from '@/types';
 import type { SeoDefaults } from '@/types/seo';
@@ -90,16 +91,15 @@ export default function ShowListing({
 
     const location = listing.location_label?.trim();
     const notes = listing.seller_notes?.trim();
-    const listingDescription = [
-        `${listing.title} for ${formatPrice(listing.asking_price)} with ${formatMileage(listing.mileage)} miles${location ? ` in ${location}` : ''}.`,
-        [listing.condition, listing.transmission, listing.fuel_type]
+    const listingDescription = truncateDescription(
+        [
+            `${listing.title} for ${formatPrice(listing.asking_price)} with ${formatMileage(listing.mileage)} miles${location ? ` in ${location}` : ''}.`,
+            notes,
+        ]
             .filter(Boolean)
-            .join(', ') + '.',
-        notes,
-        'Listed on Web2Autos Market.',
-    ]
-        .filter(Boolean)
-        .join(' ');
+            .join(' '),
+        120,
+    );
 
     return (
         <>
@@ -109,7 +109,7 @@ export default function ShowListing({
                 path={`/market/${listing.slug}`}
                 image={
                     listing.images.length
-                        ? `/market/${listing.slug}/og.jpg`
+                        ? `/market/${listing.slug}/og.jpg?v=2`
                         : images[0]?.url
                 }
                 imageWidth={1200}

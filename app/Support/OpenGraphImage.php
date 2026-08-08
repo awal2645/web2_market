@@ -13,6 +13,8 @@ class OpenGraphImage
 
     public const HEIGHT = 630;
 
+    public const VERSION = '2';
+
     /**
      * Return a cached 1200x630 JPEG for the listing's first photo.
      */
@@ -40,7 +42,7 @@ class OpenGraphImage
         }
 
         try {
-            $jpeg = $this->coverCropToJpeg($sourceBinary);
+            $jpeg = $this->coverCropToJpeg($sourceBinary, $listing);
         } catch (Throwable) {
             return null;
         }
@@ -57,12 +59,15 @@ class OpenGraphImage
     private function cachePath(VehicleListing $listing, VehicleListingImage $image): string
     {
         $fingerprint = md5(implode('|', [
+            self::VERSION,
             (string) $image->id,
             (string) $image->path,
             (string) ($image->updated_at ?? $image->created_at ?? ''),
+            $listing->title(),
+            (string) $listing->asking_price,
         ]));
 
-        return "og-cache/{$listing->id}-{$fingerprint}.jpg";
+        return 'og-cache/'.$listing->id.'-'.$fingerprint.'.jpg';
     }
 
     private function readSource(VehicleListingImage $image): ?string
@@ -94,7 +99,7 @@ class OpenGraphImage
         return is_string($contents) && $contents !== '' ? $contents : null;
     }
 
-    private function coverCropToJpeg(string $binary): ?string
+    private function coverCropToJpeg(string $binary, VehicleListing $listing): ?string
     {
         $source = @imagecreatefromstring($binary);
 
@@ -133,6 +138,8 @@ class OpenGraphImage
             $cropH,
         );
 
+        $this->drawListingOverlay($canvas, $listing);
+
         ob_start();
         imagejpeg($canvas, null, 82);
         $jpeg = ob_get_clean();
@@ -141,5 +148,72 @@ class OpenGraphImage
         imagedestroy($canvas);
 
         return is_string($jpeg) && $jpeg !== '' ? $jpeg : null;
+    }
+
+    /**
+     * @param  \GdImage  $canvas
+     */
+    private function drawListingOverlay($canvas, VehicleListing $listing): void
+    {
+        $width = self::WIDTH;
+        $height = self::HEIGHT;
+        $bandTop = (int) ($height * 0.68);
+
+        for ($y = $bandTop; $y < $height; $y++) {
+            $progress = ($y - $bandTop) / max(1, $height - $bandTop);
+            $alpha = (int) min(110, 20 + ($progress * 95));
+            $color = imagecolorallocatealpha($canvas, 8, 18, 36, $alpha);
+            imageline($canvas, 0, $y, $width, $y, $color);
+        }
+
+        $title = $listing->title();
+        $price = '$'.number_format((float) $listing->asking_price);
+        $cta = 'View on Web2Autos';
+        $font = $this->fontPath();
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        $muted = imagecolorallocate($canvas, 210, 220, 235);
+
+        if ($font !== null) {
+            $titleSize = 42;
+            $priceSize = 34;
+            $ctaSize = 24;
+            $maxTitleWidth = $width - 96;
+
+            while ($titleSize > 28) {
+                $box = imagettfbbox($titleSize, 0, $font, $title);
+                $textWidth = abs(($box[2] ?? 0) - ($box[0] ?? 0));
+                if ($textWidth <= $maxTitleWidth) {
+                    break;
+                }
+                $titleSize -= 2;
+            }
+
+            imagettftext($canvas, $titleSize, 0, 48, $height - 118, $white, $font, $title);
+            imagettftext($canvas, $priceSize, 0, 48, $height - 68, $white, $font, $price);
+            imagettftext($canvas, $ctaSize, 0, 48, $height - 28, $muted, $font, $cta);
+
+            return;
+        }
+
+        imagestring($canvas, 5, 48, $height - 90, substr($title, 0, 48), $white);
+        imagestring($canvas, 5, 48, $height - 60, $price, $white);
+        imagestring($canvas, 4, 48, $height - 32, $cta, $muted);
+    }
+
+    private function fontPath(): ?string
+    {
+        $candidates = [
+            resource_path('fonts/OpenSans-Bold.ttf'),
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+            '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }
