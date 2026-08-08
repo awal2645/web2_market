@@ -7,6 +7,7 @@ use App\Http\Requests\StoreVehicleListingRequest;
 use App\Http\Requests\UpdateVehicleListingRequest;
 use App\Http\Resources\VehicleListingResource;
 use App\Mail\ListingApprovedMail;
+use App\Mail\NewListingSubmittedMail;
 use App\Models\Conversation;
 use App\Models\VehicleListing;
 use App\Models\VehicleListingImage;
@@ -130,6 +131,10 @@ class VehicleListingController extends Controller
         ]);
 
         $status = $marketSettings->initialListingStatus();
+
+        if ($notifyEmail = config('market.notify_email')) {
+            Mail::to($notifyEmail)->queue(new NewListingSubmittedMail($listing));
+        }
 
         if ($status === ListingStatus::Approved && $request->user()->email) {
             Mail::to($request->user()->email)->queue(new ListingApprovedMail($listing));

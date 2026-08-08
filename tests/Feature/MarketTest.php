@@ -1,11 +1,13 @@
 <?php
 
+use App\Mail\NewListingSubmittedMail;
 use App\Models\MarketSetting;
 use App\Models\User;
 use App\Models\VehicleListing;
 use App\Models\VehicleListingImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -136,6 +138,7 @@ test('listing detail page redirects numeric id urls to slug', function () {
 
 test('users can submit a vehicle listing with images', function () {
     Storage::fake('public');
+    Mail::fake();
 
     $user = User::factory()->create();
 
@@ -175,6 +178,11 @@ test('users can submit a vehicle listing with images', function () {
     expect($listing)->not->toBeNull();
     expect($listing->images)->toHaveCount(2);
     expect($user->fresh()->listing_prompt_completed_at)->not->toBeNull();
+
+    Mail::assertQueued(NewListingSubmittedMail::class, function (NewListingSubmittedMail $mail) use ($listing) {
+        return $mail->listing->is($listing)
+            && $mail->hasTo(config('market.notify_email'));
+    });
 });
 
 test('manual approval keeps new listings pending', function () {

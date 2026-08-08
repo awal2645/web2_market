@@ -18,6 +18,17 @@ return [
 
     'require_email_verification' => env('MARKET_REQUIRE_EMAIL_VERIFICATION', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | New Listing Notification
+    |--------------------------------------------------------------------------
+    |
+    | Address notified whenever a seller submits a new vehicle listing.
+    |
+    */
+
+    'notify_email' => env('MARKET_NOTIFY_EMAIL', 'info@web2autos.com'),
+
     'compare_max_items' => 4,
 
     'message_poll_seconds' => env('MARKET_MESSAGE_POLL_SECONDS', 5),
